@@ -1,0 +1,117 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9fafb;
+  color: #1f2937;
+  line-height: 1.75;
+  font-size: 1.125rem;
+}
+header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 2rem 0;
+}
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+nav a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-left: 1rem;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+.language-select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+.hero {
+  text-align: center;
+  padding: 7rem 2rem;
+  background-color: #ffffff;
+}
+.hero h2 {
+  font-size: 3.5rem;
+  margin-bottom: 1.5rem;
+  color: #111827;
+}
+.hero p {
+  font-size: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  color: #4b5563;
+}
+.btn {
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 1rem 3rem;
+  border-radius: 0.75rem;
+  font-size: 1.25rem;
+  text-decoration: none;
+  font-weight: 700;
+  transition: background-color 0.3s;
+}
+.btn:hover {
+  background-color: #1e40af;
+}
+.features {
+  display: flex;
+  justify-content: space-around;
+  padding: 6rem 2rem;
+  background-color: #f3f4f6;
+  flex-wrap: wrap;
+  gap: 3rem;
+}
+.feature {
+  flex: 1 1 300px;
+  background-color: #ffffff;
+  padding: 3rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+.feature h3 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+.feature p {
+  color: #6b7280;
+  font-size: 1.125rem;
+}
+.extra {
+  background-color: #ffffff;
+  padding: 5rem 2rem;
+  text-align: center;
+}
+.extra h3 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: #111827;
+}
+.extra p {
+  font-size: 1.25rem;
+  max-width: 900px;
+  margin: 0 auto;
+  color: #4b5563;
+}
+footer {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1rem;
+  color: #9ca3af;
+}
