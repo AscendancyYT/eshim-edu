@@ -1,0 +1,257 @@
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f7f9fc;
+  color: #333;
+  margin: 0;
+  padding: 20px;
+}
+
+.admin-container {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.user-panel,
+.withdraw-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  width: 45%;
+  height: 500px;
+  overflow-y: scroll;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-users li,
+.admin-withdraws li {
+  padding: 12px 16px;
+  background: #f0f0f0;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-users li:hover {
+  background: #dfefff;
+}
+
+.admin-withdraws li {
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+.admin-withdraws button {
+  margin-top: 8px;
+  margin-right: 10px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.admin-withdraws .approve {
+  background-color: #27ae60;
+  color: white;
+}
+
+.admin-withdraws .deny {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.modal-form label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.modal-form input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-save {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-cancel {
+  background-color: #bdc3c7;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 320px;
+  max-width: 95%;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.search-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.admin-transactions li {
+  background: #f8f8f8;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.transaction-panel,
+.purchase-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  width: 45%;
+  height: 500px;
+  overflow-y: scroll;
+}
+
+.admin-purchases li {
+  background: #fdfdfd;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #8e44ad;
+}
+
+.admin-purchases button {
+  margin-top: 8px;
+  margin-right: 10px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.admin-purchases .approve {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.admin-purchases .deny {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.auction-panel{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.auction-panel input{
+  width: 250px;
+  height: 50px;
+  border-radius: 10px;
+  padding-left: 20px;
+  border: 1px solid #333;
+}
+
+.auction-panel .btn{
+  width: 200px;
+  height: 50px;
+  margin-left: 20px;
+  background-color: #27ae60;
+  color: #fff;
+  border: none;
+  transition: all .2s linear;
+}
+
+.auction-panel .btn:hover{
+  color: #27ae60;
+  background-color: #fff;
+  border: 1px solid #27ae60;
+}
+
+.top{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bottom{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

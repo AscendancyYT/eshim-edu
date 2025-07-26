@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ESHIM ID Auction</title>
+  <link rel="icon" href="../styles/Images/logo.jpg">
+  <link rel="stylesheet" href="../styles/auction.css">
+</head>
+<body>
+  <div class="auction-card">
+    <h1>ESHIM ID Auction 🔥</h1>
+    <div class="reward">🏆 Winner gets: Custom NFT badge</div>
+    <div class="info">
+      <strong>Current Auction:</strong> <span id="activeEshimId">Waiting...</span><br/>
+      <strong>Top Bid:</strong> <span id="topBid">0</span> Eshim<br/>
+      <strong>Top Bidder (ESHIM ID):</strong> <span id="topUser">N/A</span><br/>
+      <strong>Time Left:</strong> <span id="timer">Waiting...</span>
+    </div>
+    <input type="text" id="eshimId" placeholder="Loading..." readonly />
+    <input type="number" id="bidAmount" placeholder="Your bid amount in Eshim" disabled />
+    <button id="bidBtn" disabled>Place Bid</button>
+    <div class="bid-list" id="bidList"></div>
+  </div>
+
+  <script type="module" src="..//functions/auction.js"></script>
+</body>
+</html>

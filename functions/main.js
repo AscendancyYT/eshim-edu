@@ -1,56 +1,137 @@
-const translations = {
-  ru: {
-    hero_title: "Мотивация встречает образование",
-    hero_text:
-      "Мы не отслеживаем домашки. Мы зажигаем внутри тебя огонь — тот самый, что двигает тебя вперёд и заставляет мечтать смелее.",
-    start_btn: "Начать путь",
-    feature1_title: "🔥 Настоящая мотивация",
-    feature1_text:
-      "Ежедневные импульсы, личные достижения и мягкие напоминания.",
-    feature2_title: "🌱 Рост, не выгорание",
-    feature2_text: "Открывай свои сильные стороны без давления и гонки.",
-    feature3_title: "💡 Для мыслящих",
-    feature3_text:
-      "Для любознательных умов и креативных душ, не для зомби с чеклистами.",
-    extra1_title: "Совсем другой подход.",
-    extra1_text:
-      "Eshim Edu — не просто школьный сервис. Он не заваливает заданиями. Он даёт тебе вызовы и поддержку, которые действительно важны.",
-    extra2_title: "Почему это работает",
-    extra2_text:
-      "Потому что ты — в центре. Что ты хочешь достичь, кем хочешь стать — всё зависит от тебя. Без давления, с максимумом вайба.",
-  },
-  uz: {
-    hero_title: "Motivatsiya va Ta'lim",
-    hero_text:
-      "Biz uy vazifasini tekshirish uchun emasmiz. Biz sizdagi ichki olovni yoqamiz — u sizni yanada uzoqqa yetaklaydi.",
-    start_btn: "Yo‘lni boshlang",
-    feature1_title: "🔥 Haqiqiy motivatsiya",
-    feature1_text: "Kunlik turtki, shaxsiy yutuqlar va bosimsiz eslatmalar.",
-    feature2_title: "🌱 O‘zingni o‘stir, ezilma",
-    feature2_text:
-      "Kuchli tomonlaringni topishga yordam beramiz. Bu sening o‘sishing.",
-    feature3_title: "💡 Fikr egalariga",
-    feature3_text:
-      "Qiziquvchan, ijodiy o‘quvchilar va kelajak yetakchilari uchun yaratilgan.",
-    extra1_title: "Boshqacha qurilgan.",
-    extra1_text:
-      "Eshim Edu odatdagi maktab ilovasi emas. Bu sizni vazifalar bilan to‘ldirmaydi. Bu sizga ilhom va yordam beradi.",
-    extra2_title: "Nega ishlaydi",
-    extra2_text:
-      "Chunki bu siz haqingizda. Siz kim bo‘lishni xohlaysiz, qanday o‘sishni xohlaysiz — biz sizni quvvatlaymiz.",
-  },
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyABomqBTkkti8Wzxu2H0UKX1s-UZBoFN0c",
+  authDomain: "eshim-edu-eclipse.firebaseapp.com",
+  projectId: "eshim-edu-eclipse",
+  storageBucket: "eshim-edu-eclipse.firebasestorage.app",
+  messagingSenderId: "499244396754",
+  appId: "1:499244396754:web:b8add55832b41b1ee5bd0b",
+  measurementId: "G-RKW9CEM3NQ"
 };
 
-let copyrightYear = document.querySelector(".copyrightYear");
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const usersRef = collection(db, "users");
 
-const select = document.getElementById("languageSelect");
-select.addEventListener("change", () => {
-  const lang = select.value;
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const key = el.getAttribute("data-i18n");
-    el.innerText = translations[lang][key];
+if (localStorage.getItem("telegram")) {
+  window.location.href = "../src/profile.html";
+} else {
+  const nameInput = document.querySelector(".nameInput");
+  const passwordInput = document.querySelector(".passwordInput");
+  const telegramInput = document.querySelector(".telegramInput");
+  const signupBtn = document.querySelector(".signupBtn");
+  const form = document.querySelector(".form");
+  const loginLink = document.querySelector(".loginLink");
+  const nameLabel = document.querySelector(".nameLabel");
+  const successAlert = document.querySelector(".success-alert");
+
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567891234567890";
+  function generateID(length) {
+    let id = "";
+    for (let i = 0; i < length; i++) {
+      id += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return id;
+  }
+
+  loginLink.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    nameInput.style.display = "none";
+    signupBtn.remove();
+    loginLink.remove();
+    nameLabel.style.display = "none";
+
+    const loginBtn = document.createElement("button");
+    loginBtn.className = "loginBtn";
+    loginBtn.type = "submit";
+    loginBtn.textContent = "Log In";
+    document.querySelector(".buttons").appendChild(loginBtn);
+
+    form.addEventListener(
+      "submit",
+      async (e) => {
+        e.preventDefault();
+
+        const tg = telegramInput.value.trim();
+        const pw = passwordInput.value;
+
+        const q = query(usersRef, where("telegram", "==", tg));
+        const querySnapshot = await getDocs(q);
+
+        let foundUser = null;
+        querySnapshot.forEach((doc) => {
+          const user = doc.data();
+          if (user.password === pw) {
+            foundUser = user;
+          }
+        });
+
+        if (!foundUser) {
+          alert("Incorrect telegram or password");
+          return;
+        }
+
+        localStorage.setItem("telegram", foundUser.telegram);
+        localStorage.setItem("accID", foundUser.accID);
+        localStorage.setItem("goodTG", true);
+
+        window.location.href = "../src/profile.html";
+      },
+      { once: true }
+    );
   });
-});
 
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-copyrightYear.innerHTML = new Date().getFullYear()
+    if (nameInput.style.display === "none") return;
+
+    try {
+      const tg = telegramInput.value.trim();
+      const pw = passwordInput.value;
+      const name = nameInput.value.trim();
+
+      const q = query(usersRef, where("telegram", "==", tg));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        alert("This telegram is already in use. Try Logging In");
+        return;
+      }
+
+      const newUser = {
+        name,
+        accID: generateID(12),
+        eBalance: 0,
+        status: tg === "@AzizbekEshimov" ? "Admin" : "User",
+        password: pw,
+        telegram: tg,
+      };
+
+      console.log("Registering new user:", newUser);
+      await addDoc(usersRef, newUser);
+
+      localStorage.setItem("telegram", newUser.telegram);
+      localStorage.setItem("accID", newUser.accID);
+      localStorage.setItem("goodTG", true);
+
+      if (successAlert) successAlert.style.display = "flex";
+
+      window.location.href = "../src/profile.html";
+      form.reset();
+    } catch (error) {
+      console.error("Error during signup:", error);
+      alert("Signup failed. Try again.");
+    }
+  });
+}

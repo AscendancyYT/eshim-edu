@@ -1,72 +1,55 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Eshim Edu - Motivate students, inspire growth, and unlock potential with purpose-built tools for the next generation." />
-  <meta name="keywords" content="Eshim Edu, motivation, student growth, inspiration, learning journey" />
-  <meta name="author" content="Azizbek" />
-  <meta property="og:title" content="Eshim Edu" />
-  <meta property="og:description" content="Motivating the next generation of learners to reach higher and grow stronger." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://eshim-edu.netlify.app" />
-  <meta property="og:image" content="./styles/logo.png" />
-  <title>Eshim Edu</title>
-  <link rel="stylesheet" href="./styles/main.css" />
-  <link rel="icon" href="./styles/images/logo.png">
-</head>
-<body>
-  <header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./styles/styles.css" />
+    <link rel="icon" href="./styles/Images/logo.jpg" />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <title>Eshim - Crypto</title>
+  </head>
+  <body>
     <div class="container">
-      <h1 style="font-size: 2rem; font-weight: bold; color: #2563eb;">Eshim Edu</h1>
-      <nav>
-        <select class="language-select" id="languageSelect">
-          <option value="en">English</option>
-          <option value="ru">Русский</option>
-          <option value="uz">O'zbekcha</option>
-        </select>
-        <a href="./src/Login.html">Login</a>
-      </nav>
+      <img class="img0" src="./styles/Images/logo.jpg" alt="logo" />
+      <img class="img1" src="./styles/Images/logo.jpg" alt="logo" />
+      <form class="form">
+        <h1 class="box">Eshim</h1>
+
+        <label class="nameLabel">Name:</label>
+        <input
+          type="text"
+          placeholder="Enter your name"
+          name="name"
+          class="nameInput"
+        />
+
+        <label>Telegram:</label>
+        <input
+          type="text"
+          placeholder="Enter your telegram"
+          name="telegram"
+          class="telegramInput"
+        />
+
+        <label>Password:</label>
+        <input
+          type="password"
+          placeholder="Enter your password"
+          name="password"
+          class="passwordInput"
+        />
+
+        <div class="buttons">
+          <button type="submit" class="signupBtn">Sign Up</button>
+          <a href="#" class="loginLink">Already have an account? Log In!</a>
+        </div>
+      </form>
+
     </div>
-  </header>
 
-  <main>
-    <section class="hero">
-      <h2 data-i18n="hero_title">Motivation Meets Education</h2>
-      <p data-i18n="hero_text">We're not here to track your homework. We're here to light that fire inside you — the one that pushes you to go further, dream bigger, and grow every single day.</p>
-      <a class="btn" href="./src/Login.html" data-i18n="start_btn">Start the Journey</a>
-    </section>
-
-    <section class="features">
-      <div class="feature">
-        <h3 data-i18n="feature1_title">🔥 Real Motivation</h3>
-        <p data-i18n="feature1_text">Daily boosts, personal milestones, and achievement reminders that push you without pressure.</p>
-      </div>
-      <div class="feature">
-        <h3 data-i18n="feature2_title">🌱 Grow, Don't Grind</h3>
-        <p data-i18n="feature2_text">We help you discover your strengths, not drown in tasks. It's your learning, your pace.</p>
-      </div>
-      <div class="feature">
-        <h3 data-i18n="feature3_title">💡 For Thinkers</h3>
-        <p data-i18n="feature3_text">Designed for curious minds, creative learners, and future leaders — not checklist zombies.</p>
-      </div>
-    </section>
-
-    <section class="extra">
-      <h3 data-i18n="extra1_title">Built Different.</h3>
-      <p data-i18n="extra1_text">Eshim Edu isn’t your typical school app. It doesn’t flood you with assignments. It doesn’t send you reminders about stuff you hate. Instead, it fuels your drive with inspiring challenges, reflections, and a supportive community that actually gets you.</p>
-    </section>
-
-    <section class="extra">
-      <h3 data-i18n="extra2_title">Why It Works</h3>
-      <p data-i18n="extra2_text">Because it puts you first. Eshim Edu is about your journey — what *you* want to achieve, how *you* want to grow, and who *you* want to become. With zero pressure and maximum vibes.</p>
-    </section>
-  </main>
-
-  <footer>
-    <p>&copy; <span class="copyrightYear"></span> Eshim Edu. All rights reserved.</p>
-  </footer>
-  <script src="./functions/main.js"></script>
-</body>
+    <script type="module" src="./functions/main.js"></script>
+  </body>
 </html>

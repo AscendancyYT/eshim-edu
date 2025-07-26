@@ -1,0 +1,30 @@
+body {
+  font-family: sans-serif;
+  background: #f7f9fc;
+  margin: 0;
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.container {
+  max-width: 600px;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.result-box {
+  font-size: 1.2rem;
+  background: #f0f0f0;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  border-left: 5px solid #3498db;
+  word-break: break-word;
+}
+
+.result-box.success { border-left-color: #2ecc71; background: #eafaf1; }
+.result-box.error   { border-left-color: #e74c3c; background: #fdecea; }

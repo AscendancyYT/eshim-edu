@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Process Payment - Eshim</title>
+
+    <!-- Firebase (Compat CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+    <style>
+      body {
+        font-family: sans-serif;
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      input {
+        padding: 10px;
+        font-size: 16px;
+        width: 200px;
+        margin-bottom: 15px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background: #2e86de;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .status {
+        margin-top: 15px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Process Eshim Payment</h2>
+      <p id="user-id">UID: loading...</p>
+      <input type="number" id="amount" placeholder="Amount to charge" />
+      <br />
+      <button onclick="processPayment()">Confirm Payment</button>
+      <p class="status" id="status"></p>
+    </div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyABomqBTkkti8Wzxu2H0UKX1s-UZBoFN0c",
+        authDomain: "eshim-edu-eclipse.firebaseapp.com",
+        projectId: "eshim-edu-eclipse",
+        storageBucket: "eshim-edu-eclipse.firebasestorage.app",
+        messagingSenderId: "499244396754",
+        appId: "1:499244396754:web:b8add55832b41b1ee5bd0b",
+        measurementId: "G-RKW9CEM3NQ",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get("uid");
+      document.getElementById("user-id").textContent = `UID: ${uid}`;
+
+      async function processPayment() {
+        const amount = parseFloat(document.getElementById("amount").value);
+        const statusEl = document.getElementById("status");
+
+        if (!uid || isNaN(amount) || amount <= 0) {
+          statusEl.textContent = "❌ Invalid UID or amount.";
+          statusEl.style.color = "red";
+          return;
+        }
+
+        try {
+          const userRef = db.collection("users").doc(uid);
+          const docSnap = await userRef.get();
+
+          if (!docSnap.exists) {
+            statusEl.textContent = "❌ User not found.";
+            statusEl.style.color = "red";
+            return;
+          }
+
+          const userData = docSnap.data();
+          const currentBalance = userData.balance || 0;
+
+          if (currentBalance < amount) {
+            statusEl.textContent = "❌ Insufficient funds.";
+            statusEl.style.color = "red";
+            return;
+          }
+
+          await userRef.update({
+            balance: currentBalance - amount,
+          });
+
+          await db.collection("users").doc(uid).collection("transactions").add({
+            type: "purchase",
+            amount: amount,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+
+          statusEl.textContent = `✅ Payment of ${amount} Eshims successful!`;
+          statusEl.style.color = "green";
+        } catch (err) {
+          console.error(err);
+          statusEl.textContent = "❌ Error processing payment.";
+          statusEl.style.color = "red";
+        }
+      }
+    </script>
+  </body>
+</html>

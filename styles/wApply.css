@@ -1,0 +1,142 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  list-style: none;
+  text-decoration: none;
+  outline: none;
+}
+
+body {
+  background-color: #06080a;
+}
+
+.container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5%;
+  padding-top: 5%;
+  overflow-x: hidden;
+  background-position: center;
+}
+
+.container .con {
+  width: 100%;
+  max-height: 900% !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10%;
+}
+
+.container .form {
+  width: 500px;
+  height: 500px;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  border-radius: 10px;
+  padding-left: 5%;
+  padding-right: 5%;
+  border: 1px solid #00ff9c;
+  flex-direction: column;
+}
+
+.container .form label {
+  color: #00ff9c;
+  padding-bottom: 10px;
+}
+
+.container .form input {
+  width: 100%;
+  height: 10%;
+  padding-left: 3%;
+  border: 1px solid #00ff9c;
+  background-color: transparent;
+  color: #00ff9c;
+}
+
+.container .box button {
+  width: 100%;
+  height: 10%;
+  margin-top: 10px;
+  border: none;
+  background-color: #00ff9c;
+  transition: all 0.2s linear;
+  cursor: pointer;
+  color: #fff;
+  font-size: large;
+  letter-spacing: 2px;
+}
+
+.container .box button:hover {
+  border-radius: 10px;
+}
+.spinner {
+  margin-left: 8px;
+  animation: spin 1s linear infinite;
+  display: none;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.container .withdraws {
+  width: 500px;
+  max-height: 500px;
+
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  flex-direction: column;
+
+  padding-top: 50px;
+
+  color: #00ff9c;
+
+  gap: 25px;
+}
+
+.container .withdraws .withdraw {
+  width: 100%;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.container .balance {
+  font-size: xx-large;
+  width: 100%;
+  height: 10%;
+  color: #00ff9c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container .con .form .back {
+  width: 100%;
+  height: 20%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #00ff9c;
+}
