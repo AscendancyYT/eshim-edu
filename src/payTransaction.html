@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Process Payment - Eshim</title>
 
-    <!-- Firebase (Compat CDN) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -54,7 +53,7 @@
   <body>
     <div class="container">
       <h2>Process Eshim Payment</h2>
-      <p id="user-id">UID: loading...</p>
+      <p id="user-id">AccID: loading...</p>
       <input type="number" id="amount" placeholder="Amount to charge" />
       <br />
       <button onclick="processPayment()">Confirm Payment</button>
@@ -76,32 +75,36 @@
       const db = firebase.firestore();
 
       const params = new URLSearchParams(window.location.search);
-      const uid = params.get("accID");
-      document.getElementById("user-id").textContent = uid
-        ? `UID: ${uid}`
-        : "❌ UID not provided in URL.";
+      const accID = params.get("uid"); 
+      document.getElementById("user-id").textContent = accID
+        ? `AccID: ${accID}`
+        : "❌ AccID not provided in URL.";
 
       async function processPayment() {
         const amount = parseFloat(document.getElementById("amount").value);
         const statusEl = document.getElementById("status");
 
-        if (!uid || isNaN(amount) || amount <= 0) {
-          statusEl.textContent = "❌ Invalid UID or amount.";
+        if (!accID || isNaN(amount) || amount <= 0) {
+          statusEl.textContent = "❌ Invalid AccID or amount.";
           statusEl.style.color = "red";
           return;
         }
 
         try {
-          const userRef = db.collection("users").doc(uid);
-          const docSnap = await userRef.get();
+          const querySnapshot = await db
+            .collection("users")
+            .where("accID", "==", accID)
+            .get();
 
-          if (!docSnap.exists) {
+          if (querySnapshot.empty) {
             statusEl.textContent = "❌ User not found.";
             statusEl.style.color = "red";
             return;
           }
 
-          const userData = docSnap.data();
+          const userDoc = querySnapshot.docs[0];
+          const userData = userDoc.data();
+          const userDocId = userDoc.id; 
           const currentBalance = userData.eBalance || 0;
 
           if (currentBalance < amount) {
@@ -110,12 +113,16 @@
             return;
           }
 
-          await userRef.update({
-            eBalance: currentBalance - amount,
-          });
+          await db
+            .collection("users")
+            .doc(userDocId)
+            .update({
+              eBalance: currentBalance - amount,
+            });
 
-          await db.collection("users")
-            .doc(uid)
+          await db
+            .collection("users")
+            .doc(userDocId)
             .collection("transactions")
             .add({
               type: "purchase",
