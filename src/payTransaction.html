@@ -100,7 +100,7 @@
           }
 
           const userData = docSnap.data();
-          const currentBalance = userData.balance || 0;
+          const currentBalance = userData.eBalance || 0;
 
           if (currentBalance < amount) {
             statusEl.textContent = "❌ Insufficient funds.";
@@ -109,7 +109,7 @@
           }
 
           await userRef.update({
-            balance: currentBalance - amount,
+            eBalance: currentBalance - amount,
           });
 
           await db.collection("users").doc(uid).collection("transactions").add({
