@@ -75,7 +75,7 @@
       const db = firebase.firestore();
 
       const params = new URLSearchParams(window.location.search);
-      const accID = params.get("uid"); 
+      const accID = params.get("accID"); 
       document.getElementById("user-id").textContent = accID
         ? `AccID: ${accID}`
         : "❌ AccID not provided in URL.";
