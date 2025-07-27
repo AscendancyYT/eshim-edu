@@ -35,7 +35,7 @@ if (!accID) {
 
       balanceEl.textContent = `💰 ${eBalance} Eshims`;
 
-      const qrURL = `https://eshim-edu.netlify.app/payTransaction.html?accID=${accID}`;
+      const qrURL = `https://eshim-edu.netlify.app/src/payTransaction.html?accID=${accID}`;
       QRCode.toCanvas(qrURL, { width: 200 }, (err, canvas) => {
         if (err) {
           console.error("QR Error", err);
