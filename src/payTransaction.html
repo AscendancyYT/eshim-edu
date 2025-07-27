@@ -76,8 +76,10 @@
       const db = firebase.firestore();
 
       const params = new URLSearchParams(window.location.search);
-      const uid = params.get("accID");
-      document.getElementById("user-id").textContent = `UID: ${uid}`;
+      const uid = params.get("uid");
+      document.getElementById("user-id").textContent = uid
+        ? `UID: ${uid}`
+        : "❌ UID not provided in URL.";
 
       async function processPayment() {
         const amount = parseFloat(document.getElementById("amount").value);
@@ -90,7 +92,7 @@
         }
 
         try {
-          const userRef = db.collection("users").doc(accID);
+          const userRef = db.collection("users").doc(uid);
           const docSnap = await userRef.get();
 
           if (!docSnap.exists) {
@@ -112,16 +114,19 @@
             eBalance: currentBalance - amount,
           });
 
-          await db.collection("users").doc(uid).collection("transactions").add({
-            type: "purchase",
-            amount: amount,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          });
+          await db.collection("users")
+            .doc(uid)
+            .collection("transactions")
+            .add({
+              type: "purchase",
+              amount: amount,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
 
           statusEl.textContent = `✅ Payment of ${amount} Eshims successful!`;
           statusEl.style.color = "green";
         } catch (err) {
-          console.error(err);
+          console.error("Payment error:", err);
           statusEl.textContent = "❌ Error processing payment.";
           statusEl.style.color = "red";
         }
