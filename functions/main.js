@@ -8,45 +8,68 @@ const firebaseConfig = {
   measurementId: "G-RKW9CEM3NQ",
 };
 
-firebase.initializeApp(firebaseConfig);
+function showCustomAlert(message, type) {
+  const alertDiv = document.createElement("div");
+  alertDiv.className = `custom-alert ${type}`;
+  alertDiv.textContent = message;
+  document.body.prepend(alertDiv);
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+  setTimeout(() => {
+    alertDiv.classList.add("show");
+  }, 100);
 
-const nameInput = document.querySelector(".nameInput");
-const emailInput = document.querySelector(".emailInput");
-const passwordInput = document.querySelector(".passwordInput");
-const classInput = document.querySelector(".classOption");
-const form = document.querySelector(".form");
+  setTimeout(() => {
+    alertDiv.classList.remove("show");
+    setTimeout(() => {
+      alertDiv.remove();
+    }, 500);
+  }, 3000);
+}
 
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
+if (typeof firebase === "undefined") {
+  showCustomAlert(
+    "Xatolik: Firebase SDK yuklanmadi. Iltimos internetni borligini tekshiring.",
+    "error"
+  );
+} else {
+  firebase.initializeApp(firebaseConfig);
 
-  const nameValue = nameInput.value;
-  const emailValue = emailInput.value;
-  const passwordValue = passwordInput.value;
-  const classValue = classInput.value;
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-  auth.createUserWithEmailAndPassword(emailValue, passwordValue)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      console.log("User created with ID: ", user.uid);
+  const nameInput = document.querySelector(".nameInput");
+  const emailInput = document.querySelector(".emailInput");
+  const passwordInput = document.querySelector(".passwordInput");
+  const classInput = document.querySelector(".classOption");
+  const form = document.querySelector(".form");
 
-      return db.collection("users").doc(user.uid).set({
-        name: nameValue,
-        email: emailValue,
-        class: classValue,
-        balance: 0,
-        status: emailValue === "eshimovazizbekuv@gmail.com" ? "Admin" : "User",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const nameValue = nameInput.value;
+    const emailValue = emailInput.value;
+    const passwordValue = passwordInput.value;
+    const classValue = classInput.value;
+
+    auth.createUserWithEmailAndPassword(emailValue, passwordValue)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        showCustomAlert(`Akkaunt Muvaffaqiyatli Yaratildi!`, "success");
+
+        return db.collection("users").doc(user.uid).set({
+          name: nameValue,
+          email: emailValue,
+          class: classValue,
+          balance: 0,
+          status: emailValue === "eshimovazizbekuv@gmail.com" ? "Admin" : "User",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      })
+      .then(() => {
+        form.reset();
+      })
+      .catch((error) => {
+        showCustomAlert(`Xatolik: ${error.message}`, "error");
       });
-    })
-    .then(() => {
-      console.log("User data stored in Firestore");
-      form.reset();
-    })
-    .catch((error) => {
-      console.error("Nimadir Xato ketdi: ", error.message);
-      alert("Nimadir Xato Ketdi: " + error.message);
-    });
-});
+  });
+}

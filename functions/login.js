@@ -8,10 +8,28 @@ const firebaseConfig = {
   measurementId: "G-RKW9CEM3NQ",
 };
 
+function showCustomAlert(message, type) {
+  const alertDiv = document.createElement("div");
+  alertDiv.className = `custom-alert ${type}`;
+  alertDiv.textContent = message;
+  document.body.prepend(alertDiv);
+
+  setTimeout(() => {
+    alertDiv.classList.add("show");
+  }, 100);
+
+  setTimeout(() => {
+    alertDiv.classList.remove("show");
+    setTimeout(() => {
+      alertDiv.remove();
+    }, 500);
+  }, 3000);
+}
+
 if (typeof firebase === "undefined") {
-  console.error("Firebase SDK not loaded. Check CDN scripts in HTML.");
-  alert(
-    "Error: Firebase SDK failed to load. Please check your internet connection or CDN URLs."
+  showCustomAlert(
+    "Xatolik: Firebase SDK yuklanmadi. Iltimos internetni borligini tekshiring.",
+    "error"
   );
 } else {
   firebase.initializeApp(firebaseConfig);
@@ -32,13 +50,11 @@ if (typeof firebase === "undefined") {
       .signInWithEmailAndPassword(emailValue, passwordValue)
       .then((userCredential) => {
         const user = userCredential.user;
-        console.log("User signed in with ID: ", user.uid);
-        alert("Login successful! Welcome, " + user.email);
+        showCustomAlert(`Akkauntga Kirildi`, "success");
         form.reset();
       })
       .catch((error) => {
-        console.error("Error during login: ", error.message);
-        alert("Error: " + error.message);
+        showCustomAlert(`Xatolik: ${error.message}`, "error");
       });
   });
 }
