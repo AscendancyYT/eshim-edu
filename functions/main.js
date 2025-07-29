@@ -23,12 +23,12 @@ function showCustomAlert(message, type) {
     setTimeout(() => {
       alertDiv.remove();
     }, 500);
-  }, 3000);
+  }, 1500); 
 }
 
 if (typeof firebase === "undefined") {
   showCustomAlert(
-    "Xatolik: Firebase SDK yuklanmadi. Iltimos internetni borligini tekshiring.",
+    "Error: Firebase SDK failed to load. Please check your internet connection or CDN URLs.",
     "error"
   );
 } else {
@@ -54,8 +54,6 @@ if (typeof firebase === "undefined") {
     auth.createUserWithEmailAndPassword(emailValue, passwordValue)
       .then((userCredential) => {
         const user = userCredential.user;
-        showCustomAlert(`Akkaunt Muvaffaqiyatli Yaratildi!`, "success");
-
         return db.collection("users").doc(user.uid).set({
           name: nameValue,
           email: emailValue,
@@ -66,10 +64,14 @@ if (typeof firebase === "undefined") {
         });
       })
       .then(() => {
+        showCustomAlert("Signup successful! Redirecting to dashboard...", "success");
+        setTimeout(() => {
+          window.location.href = "../src/dashboard.html";
+        }, 1500);
         form.reset();
       })
       .catch((error) => {
-        showCustomAlert(`Xatolik: ${error.message}`, "error");
+        showCustomAlert(`Error: ${error.message}`, "error");
       });
   });
 }

@@ -5,7 +5,7 @@ const firebaseConfig = {
   storageBucket: "eshim-edu-eclipse.firebasestorage.app",
   messagingSenderId: "499244396754",
   appId: "1:499244396754:web:b8add55832b41b1ee5bd0b",
-  measurementId: "G-RKW9CEM3NQ",
+  measurementId: "G-RKW9CEM3NQ"
 };
 
 function showCustomAlert(message, type) {
@@ -23,12 +23,12 @@ function showCustomAlert(message, type) {
     setTimeout(() => {
       alertDiv.remove();
     }, 500);
-  }, 3000);
+  }, 1500); 
 }
 
 if (typeof firebase === "undefined") {
   showCustomAlert(
-    "Xatolik: Firebase SDK yuklanmadi. Iltimos internetni borligini tekshiring.",
+    "Error: Firebase SDK failed to load. Please check your internet connection or CDN URLs.",
     "error"
   );
 } else {
@@ -50,11 +50,14 @@ if (typeof firebase === "undefined") {
       .signInWithEmailAndPassword(emailValue, passwordValue)
       .then((userCredential) => {
         const user = userCredential.user;
-        showCustomAlert(`Akkauntga Kirildi`, "success");
+        showCustomAlert("Login successful! Redirecting to dashboard...", "success");
+        setTimeout(() => {
+          window.location.href = "../src/dashboard.html";
+        }, 1500);
         form.reset();
       })
       .catch((error) => {
-        showCustomAlert(`Xatolik: ${error.message}`, "error");
+        showCustomAlert(`Error: ${error.message}`, "error");
       });
   });
 }

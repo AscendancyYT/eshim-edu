@@ -1,0 +1,376 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f2f4f8;
+  color: #34495e;
+  overflow-x: hidden;
+}
+
+/* Dashboard container */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #2d3e50;
+}
+
+.header #user-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #34495e;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 240px;
+  height: calc(100vh - 60px);
+  background: #ffffff;
+  padding: 1.5rem;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: #34495e;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar a:hover {
+  background-color: #e8f0fe;
+  color: #4a90e2;
+}
+
+.sidebar a.active {
+  background-color: #4a90e2;
+  color: #ffffff;
+}
+
+/* Main content */
+.main-content {
+  margin-left: 240px;
+  margin-top: 60px;
+  padding: 2rem;
+  flex: 1;
+  min-height: calc(100vh - 60px);
+}
+
+.main-content h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2d3e50;
+  margin-bottom: 1.5rem;
+}
+
+/* Cards */
+.profile-card, .quick-links {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.profile-card p {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #34495e;
+}
+
+.profile-card p strong {
+  font-weight: 600;
+}
+
+.quick-links a {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  color: #4a90e2;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.quick-links a:hover {
+  background-color: #e8f0fe;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.95rem;
+  color: #34495e;
+}
+
+th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+td {
+  border-top: 1px solid #e8ecef;
+}
+
+/* Edit buttons */
+.edit-btn, .save-btn, .cancel-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.edit-btn {
+  background: #4a90e2;
+  color: #ffffff;
+}
+
+.edit-btn:hover {
+  background: #357ab8;
+}
+
+.save-btn {
+  background: #4caf50;
+  color: #ffffff;
+}
+
+.save-btn:hover {
+  background: #388e3c;
+}
+
+.cancel-btn {
+  background: #f44336;
+  color: #ffffff;
+}
+
+.cancel-btn:hover {
+  background: #d32f2f;
+}
+
+/* Edit form */
+.edit-user-form {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.edit-user-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.edit-user-form label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 0.5rem;
+}
+
+.edit-user-form input,
+.edit-user-form select {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  border: 1px solid #e8ecef;
+  border-radius: 6px;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-user-form input:focus,
+.edit-user-form select:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  outline: none;
+}
+
+/* Form elements */
+.main-content form label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 0.5rem;
+}
+
+.main-content form select,
+.main-content form button {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #e8ecef;
+  border-radius: 6px;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.main-content form select:focus,
+.main-content form button:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  outline: none;
+}
+
+.main-content form button {
+  background: #4a90e2;
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.main-content form button:hover {
+  background: #357ab8;
+}
+
+/* Footer */
+.footer {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #34495e;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom Alerts */
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 30px;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.custom-alert.success {
+  background: #4caf50;
+}
+
+.custom-alert.error {
+  background: #f44336;
+}
+
+.custom-alert.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .header {
+    padding: 1rem;
+  }
+
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    box-shadow: none;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .main-content {
+    margin-left: 0;
+    margin-top: 0;
+    padding: 1.5rem;
+  }
+
+  .edit-user-form {
+    padding: 0.75rem;
+  }
+
+  .edit-user-form .form-group {
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.4rem;
+  }
+
+  .main-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .profile-card, .quick-links {
+    padding: 1rem;
+  }
+
+  th, td {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  .edit-btn, .save-btn, .cancel-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
