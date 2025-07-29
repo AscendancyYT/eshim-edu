@@ -14,13 +14,11 @@ body {
   overflow-x: hidden;
 }
 
-/* Dashboard container */
 .dashboard-container {
   display: flex;
   min-height: 100vh;
 }
 
-/* Header */
 .header {
   position: fixed;
   top: 0;
@@ -47,7 +45,6 @@ body {
   color: #34495e;
 }
 
-/* Sidebar */
 .sidebar {
   position: fixed;
   top: 60px;
@@ -336,7 +333,6 @@ td {
   transform: translateX(-50%) translateY(0);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .dashboard-container {
     flex-direction: column;
@@ -371,6 +367,9 @@ td {
 
   .qr-card #qr-code {
     transform: scale(0.8);
+  }
+  #user-name{
+    display: none;
   }
 }
 
@@ -581,5 +580,9 @@ td {
 
   .overlay.active {
     display: block;
+  }
+
+  .main-content{
+    margin-left: 0;
   }
 }
