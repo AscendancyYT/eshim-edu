@@ -84,7 +84,6 @@ body {
   color: #ffffff;
 }
 
-/* Main content */
 .main-content {
   margin-top: 60px;
   padding: 2rem;
@@ -562,6 +561,7 @@ td {
   }
 
   .main-content {
+    width: 100%;
     margin-left: 0;
     margin-top: 60px;
   }
@@ -581,7 +581,4 @@ td {
     display: block;
   }
 
-  .main-content{
-    margin-left: 0;
-  }
 }
