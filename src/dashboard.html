@@ -1,38 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eshim Edu Eclipse - Dashboard</title>
-  <link rel="stylesheet" href="../styles/dashboard.css">
-  <link rel="icon" href="../styles/images/logo.png">
-</head>
-<body>
-  <div class="dashboard-container">
-    <header class="header">
-      <h1>Eshim Edu Eclipse</h1>
-      <span id="user-name"></span>
-    </header>
-    <nav class="sidebar">
-      <ul>
-        <li><a href="#" data-view="home">Home</a></li>
-        <li><a href="#" data-view="profile">Profile</a></li>
-        <li id="resources-link"><a href="#" data-view="resources">Resources</a></li>
-        <li id="user-management-link"><a href="#" data-view="user-management">User Management</a></li>
-        <li><a href="#" data-view="eshim-pay">Eshim Pay</a></li>
-        <li><a href="#" id="logout">Logout</a></li>
-      </ul>
-    </nav>
-    <main class="main-content">
-    </main>
-    <footer class="footer">
-      <p>&copy; 2025 Eshim Edu Eclipse. All rights reserved.</p>
-    </footer>
-  </div>
-  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
-  <script src="../functions/lib/qrcode.min.js"></script>
-  <script src="../functions/dashboard.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eshim Edu Eclipse - Dashboard</title>
+    <link rel="stylesheet" href="../styles/dashboard.css" />
+    <link rel="icon" href="../styles/images/logo.png" />
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <header class="header">
+        <h1>Eshim Edu Eclipse</h1>
+        <button class="burger-menu" id="burger-menu">☰</button>
+
+        <span id="user-name"></span>
+      </header>
+      <nav class="sidebar">
+        <ul>
+          <li><a href="#" data-view="home">Home</a></li>
+          <li><a href="#" data-view="profile">Profile</a></li>
+          <li id="resources-link">
+            <a href="#" data-view="resources">Resources</a>
+          </li>
+          <li id="user-management-link">
+            <a href="#" data-view="user-management">User Management</a>
+          </li>
+          <li><a href="#" data-view="eshim-pay">Eshim Pay</a></li>
+          <li><a href="#" id="logout">Logout</a></li>
+        </ul>
+      </nav>
+      <main class="main-content"></main>
+      <footer class="footer">
+        <p>&copy; 2025 Eshim Edu Eclipse. All rights reserved.</p>
+      </footer>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
+    <script src="../functions/lib/qrcode.min.js"></script>
+    <script src="../functions/dashboard.js"></script>
+    <div class="overlay" id="overlay"></div>
+    <script>
+      const burger = document.getElementById("burger-menu");
+      const sidebar = document.querySelector(".sidebar");
+      const overlay = document.getElementById("overlay");
+
+      burger.addEventListener("click", () => {
+        sidebar.classList.toggle("open");
+        overlay.classList.toggle("active");
+      });
+
+      overlay.addEventListener("click", () => {
+        sidebar.classList.remove("open");
+        overlay.classList.remove("active");
+      });
+    </script>
+  </body>
 </html>

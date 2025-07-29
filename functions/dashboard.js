@@ -36,7 +36,8 @@ if (typeof firebase === "undefined") {
     firebase.initializeApp(firebaseConfig);
   } catch (error) {
     showCustomAlert(`Error initializing Firebase: ${error.message}`, "error");
-    document.querySelector(".main-content").innerHTML = "<h2>Error</h2><p>Failed to initialize the application. Please try again later.</p>";
+    document.querySelector(".main-content").innerHTML =
+      "<h2>Error</h2><p>Failed to initialize the application. Please try again later.</p>";
   }
 
   const auth = firebase.auth();
@@ -44,7 +45,9 @@ if (typeof firebase === "undefined") {
 
   auth.onAuthStateChanged((user) => {
     if (user) {
-      db.collection("users").doc(user.uid).get()
+      db.collection("users")
+        .doc(user.uid)
+        .get()
         .then((doc) => {
           if (doc.exists) {
             const userData = doc.data();
@@ -55,7 +58,10 @@ if (typeof firebase === "undefined") {
           }
         })
         .catch((error) => {
-          showCustomAlert(`Error fetching user data: ${error.message}`, "error");
+          showCustomAlert(
+            `Error fetching user data: ${error.message}`,
+            "error"
+          );
         });
     } else {
       showCustomAlert("Please log in to continue", "error");
@@ -145,14 +151,17 @@ if (typeof firebase === "undefined") {
     });
 
     document.getElementById("logout").addEventListener("click", () => {
-      auth.signOut().then(() => {
-        showCustomAlert("Logged out successfully", "success");
-        setTimeout(() => {
-          window.location.href = "../src/login.html";
-        }, 1500);
-      }).catch((error) => {
-        showCustomAlert(`Error logging out: ${error.message}`, "error");
-      });
+      auth
+        .signOut()
+        .then(() => {
+          showCustomAlert("Logged out successfully", "success");
+          setTimeout(() => {
+            window.location.href = "../src/login.html";
+          }, 1500);
+        })
+        .catch((error) => {
+          showCustomAlert(`Error logging out: ${error.message}`, "error");
+        });
     });
   }
 
@@ -160,7 +169,10 @@ if (typeof firebase === "undefined") {
     const mainContent = document.querySelector(".main-content");
     switch (view) {
       case "home":
-        mainContent.innerHTML = userData.status === "Admin" ? getAdminHomeView() : getStudentHomeView(userData);
+        mainContent.innerHTML =
+          userData.status === "Admin"
+            ? getAdminHomeView()
+            : getStudentHomeView(userData);
         break;
       case "profile":
         mainContent.innerHTML = getProfileView(userData);
@@ -172,12 +184,17 @@ if (typeof firebase === "undefined") {
         break;
       case "user-management":
         if (userData.status === "Admin") {
-          fetchAllUsers().then((users) => {
-            mainContent.innerHTML = getUserManagementView(users);
-            setupEditListeners(users);
-          }).catch((error) => {
-            showCustomAlert(`Error fetching users: ${error.message}`, "error");
-          });
+          fetchAllUsers()
+            .then((users) => {
+              mainContent.innerHTML = getUserManagementView(users);
+              setupEditListeners(users);
+            })
+            .catch((error) => {
+              showCustomAlert(
+                `Error fetching users: ${error.message}`,
+                "error"
+              );
+            });
         }
         break;
       case "eshim-pay":
@@ -197,8 +214,12 @@ if (typeof firebase === "undefined") {
     const qrCodeDiv = document.getElementById("qr-code");
     qrCodeDiv.innerHTML = "";
     if (typeof QRCode === "undefined") {
-      showCustomAlert("Error: QR code library failed to load. Please ensure the library is included.", "error");
-      qrCodeDiv.innerHTML = "<p>Unable to generate QR code. Please try again later.</p>";
+      showCustomAlert(
+        "Error: QR code library failed to load. Please ensure the library is included.",
+        "error"
+      );
+      qrCodeDiv.innerHTML =
+        "<p>Unable to generate QR code. Please try again later.</p>";
       return;
     }
     try {
@@ -208,47 +229,73 @@ if (typeof firebase === "undefined") {
         height: 200,
         colorDark: "#2d3e50",
         colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+        correctLevel: QRCode.CorrectLevel.H,
       });
     } catch (error) {
       showCustomAlert(`Error generating QR code: ${error.message}`, "error");
-      qrCodeDiv.innerHTML = "<p>Unable to generate QR code. Please try again later.</p>";
+      qrCodeDiv.innerHTML =
+        "<p>Unable to generate QR code. Please try again later.</p>";
     }
 
-    fetchTransactions(userData).then((transactions) => {
-      const transactionsBody = document.getElementById("transactions-body");
-      if (transactions.length === 0) {
-        transactionsBody.innerHTML = "<tr><td colspan='5'>No transactions found.</td></tr>";
-        return;
-      }
-      transactionsBody.innerHTML = transactions.map((transaction) => `
+    fetchTransactions(userData)
+      .then((transactions) => {
+        const transactionsBody = document.getElementById("transactions-body");
+        if (transactions.length === 0) {
+          transactionsBody.innerHTML =
+            "<tr><td colspan='5'>No transactions found.</td></tr>";
+          return;
+        }
+        transactionsBody.innerHTML = transactions
+          .map(
+            (transaction) => `
         <tr>
-          <td>${new Date(transaction.timestamp.toMillis()).toLocaleString()}</td>
-          <td>${transaction.senderId === auth.currentUser.uid ? "You" : transaction.senderId}</td>
-          <td>${transaction.receiverId === auth.currentUser.uid ? "You" : transaction.receiverId}</td>
+          <td>${new Date(
+            transaction.timestamp.toMillis()
+          ).toLocaleString()}</td>
+          <td>${
+            transaction.senderId === auth.currentUser.uid
+              ? "You"
+              : transaction.senderId
+          }</td>
+          <td>${
+            transaction.receiverId === auth.currentUser.uid
+              ? "You"
+              : transaction.receiverId
+          }</td>
           <td>${transaction.amount}</td>
           <td>${transaction.description || "N/A"}</td>
         </tr>
-      `).join("");
-    }).catch((error) => {
-      showCustomAlert(`Error fetching transactions: ${error.message}`, "error");
-      document.getElementById("transactions-body").innerHTML = "<tr><td colspan='5'>Failed to load transactions.</td></tr>";
-    });
+      `
+          )
+          .join("");
+      })
+      .catch((error) => {
+        showCustomAlert(
+          `Error fetching transactions: ${error.message}`,
+          "error"
+        );
+        document.getElementById("transactions-body").innerHTML =
+          "<tr><td colspan='5'>Failed to load transactions.</td></tr>";
+      });
   }
 
   function fetchTransactions(userData) {
     let query = db.collection("transactions");
     if (userData.status !== "Admin") {
-      query = query.where("senderId", "==", auth.currentUser.uid)
-                   .orWhere("receiverId", "==", auth.currentUser.uid);
+      query = query
+        .where("senderId", "==", auth.currentUser.uid)
+        .orWhere("receiverId", "==", auth.currentUser.uid);
     }
-    return query.orderBy("timestamp", "desc").get().then((querySnapshot) => {
-      const transactions = [];
-      querySnapshot.forEach((doc) => {
-        transactions.push(doc.data());
+    return query
+      .orderBy("timestamp", "desc")
+      .get()
+      .then((querySnapshot) => {
+        const transactions = [];
+        querySnapshot.forEach((doc) => {
+          transactions.push(doc.data());
+        });
+        return transactions;
       });
-      return transactions;
-    });
   }
 
   function getProfileView(userData) {
@@ -276,16 +323,20 @@ if (typeof firebase === "undefined") {
   }
 
   function fetchAllUsers() {
-    return db.collection("users").get().then((querySnapshot) => {
-      const users = [];
-      querySnapshot.forEach((doc) => {
-        users.push({ id: doc.id, ...doc.data() });
+    return db
+      .collection("users")
+      .get()
+      .then((querySnapshot) => {
+        const users = [];
+        querySnapshot.forEach((doc) => {
+          users.push({ id: doc.id, ...doc.data() });
+        });
+        return users;
+      })
+      .catch((error) => {
+        showCustomAlert(`Error fetching users: ${error.message}`, "error");
+        throw error;
       });
-      return users;
-    }).catch((error) => {
-      showCustomAlert(`Error fetching users: ${error.message}`, "error");
-      throw error;
-    });
   }
 
   function getUserManagementView(users) {
@@ -333,13 +384,19 @@ if (typeof firebase === "undefined") {
               </div>
               <div class="form-group">
                 <label>Balance:</label>
-                <input type="number" name="balance" value="${user.balance}" required>
+                <input type="number" name="balance" value="${
+                  user.balance
+                }" required>
               </div>
               <div class="form-group">
                 <label>Status:</label>
                 <select name="status" required>
-                  <option value="User" ${user.status === "User" ? "selected" : ""}>User</option>
-                  <option value="Admin" ${user.status === "Admin" ? "selected" : ""}>Admin</option>
+                  <option value="User" ${
+                    user.status === "User" ? "selected" : ""
+                  }>User</option>
+                  <option value="Admin" ${
+                    user.status === "Admin" ? "selected" : ""
+                  }>Admin</option>
                 </select>
               </div>
               <button type="submit" class="save-btn">Save</button>
@@ -358,19 +415,70 @@ if (typeof firebase === "undefined") {
 
   function generateClassOptions(selectedClass) {
     const classes = [
-      "1-A", "1-B", "1-D", "1-V", "1-G",
-      "2-A", "2-B", "2-D", "2-V", "2-G",
-      "3-A", "3-B", "3-D", "3-V", "3-G",
-      "4-A", "4-B", "4-D", "4-V", "4-G",
-      "5-A", "5-B", "5-D", "5-V", "5-G",
-      "6-A", "6-B", "6-D", "6-V", "6-G",
-      "7-A", "7-B", "7-D", "7-V", "7-G",
-      "8-A", "8-B", "8-D", "8-V", "8-G",
-      "9-A", "9-B", "9-D", "9-V", "9-G",
-      "10-A", "10-B", "10-D", "10-V", "10-G",
-      "11-A", "11-B", "11-D", "11-V", "11-G"
+      "1-A",
+      "1-B",
+      "1-D",
+      "1-V",
+      "1-G",
+      "2-A",
+      "2-B",
+      "2-D",
+      "2-V",
+      "2-G",
+      "3-A",
+      "3-B",
+      "3-D",
+      "3-V",
+      "3-G",
+      "4-A",
+      "4-B",
+      "4-D",
+      "4-V",
+      "4-G",
+      "5-A",
+      "5-B",
+      "5-D",
+      "5-V",
+      "5-G",
+      "6-A",
+      "6-B",
+      "6-D",
+      "6-V",
+      "6-G",
+      "7-A",
+      "7-B",
+      "7-D",
+      "7-V",
+      "7-G",
+      "8-A",
+      "8-B",
+      "8-D",
+      "8-V",
+      "8-G",
+      "9-A",
+      "9-B",
+      "9-D",
+      "9-V",
+      "9-G",
+      "10-A",
+      "10-B",
+      "10-D",
+      "10-V",
+      "10-G",
+      "11-A",
+      "11-B",
+      "11-D",
+      "11-V",
+      "11-G",
     ];
-    return classes.map(cls => `<option value="${cls}" ${cls === selectedClass ? "selected" : ""}>${cls}</option>`).join("");
+    return classes
+      .map(
+        (cls) =>
+          `<option value="${cls}" ${
+            cls === selectedClass ? "selected" : ""
+          }>${cls}</option>`
+      )
+      .join("");
   }
 
   function setupEditListeners(users) {
@@ -395,14 +503,20 @@ if (typeof firebase === "undefined") {
             status: formData.get("status"),
           };
 
-          db.collection("users").doc(userId).update(updatedData)
+          db.collection("users")
+            .doc(userId)
+            .update(updatedData)
             .then(() => {
               showCustomAlert("User updated successfully", "success");
               row.querySelector(".display-name").textContent = updatedData.name;
-              row.querySelector(".display-email").textContent = updatedData.email;
-              row.querySelector(".display-class").textContent = updatedData.class;
-              row.querySelector(".display-balance").textContent = updatedData.balance;
-              row.querySelector(".display-status").textContent = updatedData.status;
+              row.querySelector(".display-email").textContent =
+                updatedData.email;
+              row.querySelector(".display-class").textContent =
+                updatedData.class;
+              row.querySelector(".display-balance").textContent =
+                updatedData.balance;
+              row.querySelector(".display-status").textContent =
+                updatedData.status;
               row.style.display = "table-row";
               editRow.style.display = "none";
             })

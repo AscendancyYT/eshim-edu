@@ -5,9 +5,10 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: #f2f4f8;
   color: #34495e;
   overflow-x: hidden;
@@ -103,7 +104,9 @@ html, body {
 }
 
 /* Cards */
-.profile-card, .quick-links, .qr-card {
+.profile-card,
+.quick-links,
+.qr-card {
   background: #ffffff;
   padding: 1.5rem;
   border-radius: 10px;
@@ -111,13 +114,15 @@ html, body {
   margin-bottom: 1.5rem;
 }
 
-.profile-card p, .qr-card p {
+.profile-card p,
+.qr-card p {
   font-size: 1rem;
   margin-bottom: 0.75rem;
   color: #34495e;
 }
 
-.profile-card p strong, .qr-card p strong {
+.profile-card p strong,
+.qr-card p strong {
   font-weight: 600;
 }
 
@@ -158,7 +163,8 @@ table {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-th, td {
+th,
+td {
   padding: 0.75rem;
   text-align: left;
   font-size: 0.95rem;
@@ -175,7 +181,9 @@ td {
 }
 
 /* Edit buttons */
-.edit-btn, .save-btn, .cancel-btn {
+.edit-btn,
+.save-btn,
+.cancel-btn {
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
   border: none;
@@ -421,7 +429,8 @@ td {
   padding: 1rem;
 }
 
-.profile-card, .qr-card {
+.profile-card,
+.qr-card {
   background-color: white;
   padding: 1rem;
   border-radius: 8px;
@@ -470,7 +479,8 @@ td {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.transactions th, .transactions td {
+.transactions th,
+.transactions td {
   padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid #ddd;
@@ -498,21 +508,78 @@ td {
     font-size: 1.5rem;
   }
 
-  .profile-card, .quick-links, .qr-card {
+  .profile-card,
+  .quick-links,
+  .qr-card {
     padding: 1rem;
   }
 
-  th, td {
+  th,
+  td {
     font-size: 0.85rem;
     padding: 0.5rem;
   }
 
-  .edit-btn, .save-btn, .cancel-btn {
+  .edit-btn,
+  .save-btn,
+  .cancel-btn {
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
   }
 
   .qr-card #qr-code {
     transform: scale(0.6);
+  }
+}
+
+.burger-menu {
+  display: none;
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: #2d3e50;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .burger-menu {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    left: -100%;
+    width: 240px;
+    height: calc(100vh - 60px);
+    background: #ffffff;
+    padding: 1.5rem;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: left 0.3s ease;
+    z-index: 1001;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .main-content {
+    margin-left: 0;
+    margin-top: 60px;
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 60px);
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+  }
+
+  .overlay.active {
+    display: block;
   }
 }
