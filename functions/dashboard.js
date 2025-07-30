@@ -51,6 +51,8 @@ if (typeof firebase === "undefined") {
         .then((doc) => {
           if (doc.exists) {
             const userData = doc.data();
+            userData.uid = user.uid; // Store Firebase UID
+            userData.accID = userData.accID || user.uid; // Use accID if available, fallback to uid
             document.getElementById("user-name").textContent = userData.name;
             renderDashboard(userData);
           } else {
@@ -101,6 +103,7 @@ if (typeof firebase === "undefined") {
         <h3>Quick Links</h3>
         <a href="#" data-view="resources">View Resources</a>
         <a href="#" data-view="eshim-pay">Eshim Pay</a>
+        <a href="#" data-view="transactions">Transaction History</a>
       </div>
     `;
   }
@@ -111,12 +114,31 @@ if (typeof firebase === "undefined") {
       <p>Welcome, Admin! Here you can manage users and view system statistics.</p>
       <a href="#" data-view="user-management">Manage Users</a>
       <a href="#" data-view="eshim-pay">Eshim Pay</a>
+      <a href="#" data-view="transactions">Transaction History</a>
     `;
   }
 
   function getEshimPayView(userData) {
     return `
       <h2>Eshim Pay</h2>
+      <div class="transfer-card">
+        <h3>Send Money</h3>
+        <form id="transfer-form">
+          <div class="form-group">
+            <label for="recipient-email">Recipient Email:</label>
+            <input type="email" id="recipient-email" name="recipient-email" placeholder="Enter recipient email" required>
+          </div>
+          <div class="form-group">
+            <label for="transfer-amount">Amount:</label>
+            <input type="number" id="transfer-amount" name="transfer-amount" min="0.01" step="0.01" placeholder="Enter amount" required>
+          </div>
+          <div class="form-group">
+            <label for="transfer-description">Description (Optional):</label>
+            <textarea id="transfer-description" name="transfer-description" placeholder="Enter description"></textarea>
+          </div>
+          <button type="submit" class="transfer-btn">Send Money</button>
+        </form>
+      </div>
       <div class="qr-card">
         <h3>Your Payment QR Code</h3>
         <p>Scan this QR code with another device to process a payment.</p>
@@ -124,6 +146,33 @@ if (typeof firebase === "undefined") {
       </div>
       <div class="transactions">
         <h3>Transaction History</h3>
+        <table id="transactions-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Amount</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-body"></tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function getTransactionsView(userData) {
+    return `
+      <h2>Transaction History</h2>
+      <div class="transaction-search">
+        <div class="form-group">
+          <label for="email-search">Search by Email:</label>
+          <input type="email" id="email-search" placeholder="Enter user email">
+          <button class="search-btn" onclick="searchTransactionsByEmail()">Search</button>
+        </div>
+      </div>
+      <div class="transactions">
         <table id="transactions-table">
           <thead>
             <tr>
@@ -201,6 +250,10 @@ if (typeof firebase === "undefined") {
         mainContent.innerHTML = getEshimPayView(userData);
         renderEshimPayContent(userData);
         break;
+      case "transactions":
+        mainContent.innerHTML = getTransactionsView(userData);
+        renderTransactionsContent(userData);
+        break;
       case "settings":
         mainContent.innerHTML = getSettingsView();
         break;
@@ -210,7 +263,7 @@ if (typeof firebase === "undefined") {
   }
 
   function renderEshimPayContent(userData) {
-    const qrData = JSON.stringify({ uid: auth.currentUser.uid });
+    const qrData = JSON.stringify({ accID: userData.accID });
     const qrCodeDiv = document.getElementById("qr-code");
     qrCodeDiv.innerHTML = "";
     if (typeof QRCode === "undefined") {
@@ -253,12 +306,63 @@ if (typeof firebase === "undefined") {
             transaction.timestamp.toMillis()
           ).toLocaleString()}</td>
           <td>${
-            transaction.senderId === auth.currentUser.uid
+            transaction.senderId === userData.accID
               ? "You"
               : transaction.senderId
           }</td>
           <td>${
-            transaction.receiverId === auth.currentUser.uid
+            transaction.receiverId === userData.accID
+              ? "You"
+              : transaction.receiverId
+          }</td>
+          <td>${transaction.amount}</td>
+          <td>${transaction.description || "N/A"}</td>
+        </tr>
+      `
+          )
+          .join("");
+      })
+      .catch((error) => {
+        showCustomAlert(
+          `Error fetching transactions: ${error.message}`,
+          "error"
+        );
+        document.getElementById("transactions-body").innerHTML =
+          "<tr><td colspan='5'>Failed to load transactions.</td></tr>";
+      });
+
+    const transferForm = document.getElementById("transfer-form");
+    if (transferForm) {
+      transferForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        sendMoney(userData);
+      });
+    }
+  }
+
+  function renderTransactionsContent(userData) {
+    fetchTransactions(userData)
+      .then((transactions) => {
+        const transactionsBody = document.getElementById("transactions-body");
+        if (transactions.length === 0) {
+          transactionsBody.innerHTML =
+            "<tr><td colspan='5'>No transactions found.</td></tr>";
+          return;
+        }
+        transactionsBody.innerHTML = transactions
+          .map(
+            (transaction) => `
+        <tr>
+          <td>${new Date(
+            transaction.timestamp.toMillis()
+          ).toLocaleString()}</td>
+          <td>${
+            transaction.senderId === userData.accID
+              ? "You"
+              : transaction.senderId
+          }</td>
+          <td>${
+            transaction.receiverId === userData.accID
               ? "You"
               : transaction.receiverId
           }</td>
@@ -280,21 +384,260 @@ if (typeof firebase === "undefined") {
   }
 
   function fetchTransactions(userData) {
-    let query = db.collection("transactions");
-    if (userData.status !== "Admin") {
-      query = query
-        .where("senderId", "==", auth.currentUser.uid)
-        .orWhere("receiverId", "==", auth.currentUser.uid);
+    return new Promise((resolve, reject) => {
+      let query = db.collection("transactions");
+      if (userData.status !== "Admin") {
+        const senderQuery = query
+          .where("senderId", "==", userData.accID)
+          .orderBy("timestamp", "desc")
+          .get();
+        const receiverQuery = query
+          .where("receiverId", "==", userData.accID)
+          .orderBy("timestamp", "desc")
+          .get();
+
+        Promise.all([senderQuery, receiverQuery])
+          .then(([senderSnapshot, receiverSnapshot]) => {
+            const transactions = [];
+            const transactionIds = new Set();
+
+            senderSnapshot.forEach((doc) => {
+              if (!transactionIds.has(doc.id)) {
+                transactions.push(doc.data());
+                transactionIds.add(doc.id);
+              }
+            });
+
+            receiverSnapshot.forEach((doc) => {
+              if (!transactionIds.has(doc.id)) {
+                transactions.push(doc.data());
+                transactionIds.add(doc.id);
+              }
+            });
+
+            transactions.sort((a, b) =>
+              b.timestamp.toMillis() - a.timestamp.toMillis()
+            );
+            resolve(transactions);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      } else {
+        query
+          .orderBy("timestamp", "desc")
+          .get()
+          .then((querySnapshot) => {
+            const transactions = [];
+            querySnapshot.forEach((doc) => {
+              transactions.push(doc.data());
+            });
+            resolve(transactions);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      }
+    });
+  }
+
+  function sendMoney(userData) {
+    const recipientEmail = document.getElementById("recipient-email").value.trim();
+    const amount = parseFloat(document.getElementById("transfer-amount").value);
+    const description = document.getElementById("transfer-description").value.trim();
+    const senderId = userData.accID;
+
+    if (!recipientEmail) {
+      showCustomAlert("Please enter a recipient email", "error");
+      return;
     }
-    return query
-      .orderBy("timestamp", "desc")
+    if (isNaN(amount) || amount <= 0) {
+      showCustomAlert("Please enter a valid amount", "error");
+      return;
+    }
+
+    // Prevent sending money to self
+    if (recipientEmail === userData.email) {
+      showCustomAlert("You cannot send money to yourself", "error");
+      return;
+    }
+
+    // Fetch sender's balance
+    db.collection("users")
+      .where("email", "==", userData.email)
       .get()
       .then((querySnapshot) => {
-        const transactions = [];
-        querySnapshot.forEach((doc) => {
-          transactions.push(doc.data());
-        });
-        return transactions;
+        if (querySnapshot.empty) {
+          showCustomAlert("Sender data not found", "error");
+          return;
+        }
+        const senderDoc = querySnapshot.docs[0];
+        const senderBalance = senderDoc.data().balance || 0;
+        if (senderBalance < amount) {
+          showCustomAlert("Insufficient balance", "error");
+          return;
+        }
+
+        // Find recipient by email
+        db.collection("users")
+          .where("email", "==", recipientEmail)
+          .get()
+          .then((querySnapshot) => {
+            if (querySnapshot.empty) {
+              showCustomAlert("Recipient not found", "error");
+              return;
+            }
+
+            const recipientDoc = querySnapshot.docs[0];
+            const recipientId = recipientDoc.data().accID || recipientDoc.id;
+
+            // Perform transaction in a batch
+            const batch = db.batch();
+            const senderRef = db.collection("users").doc(senderDoc.id);
+            const recipientRef = db.collection("users").doc(recipientDoc.id);
+            const transactionRef = db.collection("transactions").doc();
+
+            // Update sender and recipient balances
+            batch.update(senderRef, { balance: senderBalance - amount });
+            batch.update(recipientRef, {
+              balance: (recipientDoc.data().balance || 0) + amount,
+            });
+
+            // Create transaction record
+            batch.set(transactionRef, {
+              senderId: senderId,
+              receiverId: recipientId,
+              amount: amount,
+              description: description || "N/A",
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Commit the batch
+            batch
+              .commit()
+              .then(() => {
+                showCustomAlert("Money sent successfully", "success");
+                // Refresh transaction history
+                renderEshimPayContent(userData);
+                // Clear form
+                document.getElementById("transfer-form").reset();
+              })
+              .catch((error) => {
+                showCustomAlert(
+                  `Error processing transaction: ${error.message}`,
+                  "error"
+                );
+              });
+          })
+          .catch((error) => {
+            showCustomAlert(
+              `Error finding recipient: ${error.message}`,
+              "error"
+            );
+          });
+      })
+      .catch((error) => {
+        showCustomAlert(`Error fetching sender data: ${error.message}`, "error");
+      });
+  }
+
+  function searchTransactionsByEmail() {
+    const email = document.getElementById("email-search").value.trim();
+    if (!email) {
+      showCustomAlert("Please enter an email address", "error");
+      return;
+    }
+
+    db.collection("users")
+      .where("email", "==", email)
+      .get()
+      .then((querySnapshot) => {
+        if (querySnapshot.empty) {
+          showCustomAlert("No user found with this email", "error");
+          document.getElementById("transactions-body").innerHTML =
+            "<tr><td colspan='5'>No user found with this email.</td></tr>";
+          return;
+        }
+
+        const user = querySnapshot.docs[0].data();
+        const uid = user.accID || querySnapshot.docs[0].id;
+
+        const senderQuery = db
+          .collection("transactions")
+          .where("senderId", "==", uid)
+          .orderBy("timestamp", "desc")
+          .get();
+        const receiverQuery = db
+          .collection("transactions")
+          .where("receiverId", "==", uid)
+          .orderBy("timestamp", "desc")
+          .get();
+
+        Promise.all([senderQuery, receiverQuery])
+          .then(([senderSnapshot, receiverSnapshot]) => {
+            const transactions = [];
+            const transactionIds = new Set();
+
+            senderSnapshot.forEach((doc) => {
+              if (!transactionIds.has(doc.id)) {
+                transactions.push(doc.data());
+                transactionIds.add(doc.id);
+              }
+            });
+
+            receiverSnapshot.forEach((doc) => {
+              if (!transactionIds.has(doc.id)) {
+                transactions.push(doc.data());
+                transactionIds.add(doc.id);
+              }
+            });
+
+            transactions.sort((a, b) =>
+              b.timestamp.toMillis() - a.timestamp.toMillis()
+            );
+
+            const transactionsBody = document.getElementById("transactions-body");
+            if (transactions.length === 0) {
+              transactionsBody.innerHTML =
+                "<tr><td colspan='5'>No transactions found for this user.</td></tr>";
+              return;
+            }
+
+            transactionsBody.innerHTML = transactions
+              .map(
+                (transaction) => `
+            <tr>
+              <td>${new Date(
+                transaction.timestamp.toMillis()
+              ).toLocaleString()}</td>
+              <td>${
+                transaction.senderId === uid ? user.name : transaction.senderId
+              }</td>
+              <td>${
+                transaction.receiverId === uid
+                  ? user.name
+                  : transaction.receiverId
+              }</td>
+              <td>${transaction.amount}</td>
+              <td>${transaction.description || "N/A"}</td>
+            </tr>
+          `
+              )
+              .join("");
+          })
+          .catch((error) => {
+            showCustomAlert(
+              `Error fetching transactions: ${error.message}`,
+              "error"
+            );
+            document.getElementById("transactions-body").innerHTML =
+              "<tr><td colspan='5'>Failed to load transactions.</td></tr>";
+          });
+      })
+      .catch((error) => {
+        showCustomAlert(`Error finding user: ${error.message}`, "error");
+        document.getElementById("transactions-body").innerHTML =
+          "<tr><td colspan='5'>Failed to find user.</td></tr>";
       });
   }
 
@@ -306,6 +649,7 @@ if (typeof firebase === "undefined") {
         <p><strong>Email:</strong> ${userData.email}</p>
         <p><strong>Class:</strong> ${userData.class}</p>
         <p><strong>Status:</strong> ${userData.status}</p>
+        <p><strong>Balance:</strong> ${userData.balance || 0}</p>
       </div>
     `;
   }
@@ -329,7 +673,10 @@ if (typeof firebase === "undefined") {
       .then((querySnapshot) => {
         const users = [];
         querySnapshot.forEach((doc) => {
-          users.push({ id: doc.id, ...doc.data() });
+          const data = doc.data();
+          data.id = doc.id;
+          data.accID = data.accID || doc.id; // Fallback to doc ID if accID is missing
+          users.push(data);
         });
         return users;
       })
@@ -501,6 +848,7 @@ if (typeof firebase === "undefined") {
             class: formData.get("class"),
             balance: parseFloat(formData.get("balance")),
             status: formData.get("status"),
+            accID: users.find(u => u.id === userId).accID || userId, // Preserve accID
           };
 
           db.collection("users")
@@ -533,4 +881,7 @@ if (typeof firebase === "undefined") {
       });
     });
   }
+
+  // Make searchTransactionsByEmail globally available
+  window.searchTransactionsByEmail = searchTransactionsByEmail;
 }
