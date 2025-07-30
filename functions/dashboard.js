@@ -23,7 +23,7 @@ function showCustomAlert(message, type) {
     setTimeout(() => {
       alertDiv.remove();
     }, 500);
-  }, 1500);
+  }, 200000);
 }
 
 if (typeof firebase === "undefined") {
@@ -77,14 +77,17 @@ if (typeof firebase === "undefined") {
     const mainContent = document.querySelector(".main-content");
     const resourcesLink = document.getElementById("resources-link");
     const userManagementLink = document.getElementById("user-management-link");
+    const sellerPassLink = document.getElementById("seller-pass-link");
 
     if (userData.status === "Admin") {
       resourcesLink.style.display = "none";
       userManagementLink.style.display = "block";
+      sellerPassLink.style.display = "block";
       mainContent.innerHTML = getAdminHomeView();
     } else {
       resourcesLink.style.display = "block";
       userManagementLink.style.display = "none";
+      sellerPassLink.style.display = "block";
       mainContent.innerHTML = getStudentHomeView(userData);
     }
 
@@ -103,7 +106,7 @@ if (typeof firebase === "undefined") {
         <h3>Quick Links</h3>
         <a href="#" data-view="resources">View Resources</a>
         <a href="#" data-view="eshim-pay">Eshim Pay</a>
-        <a href="#" data-view="transactions">Transaction History</a>
+        <a href="#" data-view="seller-pass">SellerPASS</a>
       </div>
     `;
   }
@@ -114,7 +117,7 @@ if (typeof firebase === "undefined") {
       <p>Welcome, Admin! Here you can manage users and view system statistics.</p>
       <a href="#" data-view="user-management">Manage Users</a>
       <a href="#" data-view="eshim-pay">Eshim Pay</a>
-      <a href="#" data-view="transactions">Transaction History</a>
+      <a href="#" data-view="seller-pass">Manage SellerPASS</a>
     `;
   }
 
@@ -144,49 +147,390 @@ if (typeof firebase === "undefined") {
         <p>Scan this QR code with another device to process a payment.</p>
         <div id="qr-code"></div>
       </div>
-      <div class="transactions">
-        <h3>Transaction History</h3>
-        <table id="transactions-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Amount</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody id="transactions-body"></tbody>
-        </table>
+    `;
+  }
+
+  function getSellerPassView(userData) {
+    return `
+      <h2>SellerPASS</h2>
+      <div id="seller-pass-container">
+        <div id="seller-pass-status"></div>
+        <div id="seller-pass-form-container" style="display: none;">
+          <h3>Create Business Request</h3>
+          <form id="seller-pass-form">
+            <div class="form-group">
+              <label for="company-name">Company Name:</label>
+              <input type="text" id="company-name" name="company-name" required>
+            </div>
+            <div class="form-group">
+              <label for="company-description">What does your company do?</label>
+              <textarea id="company-description" name="company-description" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Employees (minimum 2, including yourself):</label>
+              <div id="employees-container">
+                <div class="employee-entry">
+                  <input type="email" class="employee-email" placeholder="Employee email" required>
+                  <select class="employee-role" required>
+                    <option value="">Select role</option>
+                    <option value="CEO">CEO</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Employee">Employee</option>
+                  </select>
+                  <button type="button" class="remove-employee">Remove</button>
+                </div>
+                <div class="employee-entry">
+                  <input type="email" class="employee-email" placeholder="Employee email" required>
+                  <select class="employee-role" required>
+                    <option value="">Select role</option>
+                    <option value="CEO">CEO</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Employee">Employee</option>
+                  </select>
+                  <button type="button" class="remove-employee">Remove</button>
+                </div>
+              </div>
+              <button type="button" id="add-employee">Add Employee</button>
+            </div>
+            <button type="submit" class="submit-btn">Submit Request</button>
+          </form>
+        </div>
+        <div id="seller-pass-requests" style="display: none;">
+          <h3>Pending Requests</h3>
+          <table id="requests-table">
+            <thead>
+              <tr>
+                <th>Company Name</th>
+                <th>Description</th>
+                <th>Applicant</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="requests-body"></tbody>
+          </table>
+        </div>
+        <div id="seller-pass-active" style="display: none;">
+          <h3>Your SellerPASS</h3>
+          <div id="active-pass-details"></div>
+        </div>
       </div>
     `;
   }
 
-  function getTransactionsView(userData) {
-    return `
-      <h2>Transaction History</h2>
-      <div class="transaction-search">
-        <div class="form-group">
-          <label for="email-search">Search by Email:</label>
-          <input type="email" id="email-search" placeholder="Enter user email">
-          <button class="search-btn" onclick="searchTransactionsByEmail()">Search</button>
-        </div>
-      </div>
-      <div class="transactions">
-        <table id="transactions-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Amount</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody id="transactions-body"></tbody>
-        </table>
-      </div>
-    `;
+  function renderSellerPassContent(userData) {
+    const container = document.getElementById("seller-pass-container");
+    const statusDiv = document.getElementById("seller-pass-status");
+    const formContainer = document.getElementById("seller-pass-form-container");
+    const requestsContainer = document.getElementById("seller-pass-requests");
+    const activePassContainer = document.getElementById("seller-pass-active");
+
+    // Check if season is open
+    db.collection("settings")
+      .doc("sellerPass")
+      .get()
+      .then((doc) => {
+        const settings = doc.exists ? doc.data() : { seasonOpen: false };
+        
+        if (userData.status === "Admin") {
+          statusDiv.innerHTML = `
+            <h3>Admin Controls</h3>
+            <p>SellerPASS Season is currently: <strong>${settings.seasonOpen ? "OPEN" : "CLOSED"}</strong></p>
+            <button id="toggle-season-btn" class="${settings.seasonOpen ? "close-btn" : "open-btn"}">
+              ${settings.seasonOpen ? "Close Season" : "Open Season"}
+            </button>
+          `;
+
+          // Show pending requests for admin
+          requestsContainer.style.display = "block";
+          loadPendingRequests(userData);
+
+          document.getElementById("toggle-season-btn").addEventListener("click", () => {
+            const newStatus = !settings.seasonOpen;
+            db.collection("settings")
+              .doc("sellerPass")
+              .set({ seasonOpen: newStatus }, { merge: true })
+              .then(() => {
+                showCustomAlert(`Season ${newStatus ? "opened" : "closed"} successfully`, "success");
+                renderSellerPassContent(userData);
+              })
+              .catch(error => {
+                showCustomAlert(`Error updating season status: ${error.message}`, "error");
+              });
+          });
+        } else {
+          if (!settings.seasonOpen) {
+            statusDiv.innerHTML = "<p>SellerPASS season has not started yet. Please check back later.</p>";
+            formContainer.style.display = "none";
+            requestsContainer.style.display = "none";
+          } else {
+            // Check if user already has an active pass
+            db.collection("sellerPasses")
+              .where("ownerId", "==", userData.uid)
+              .where("status", "==", "approved")
+              .get()
+              .then((querySnapshot) => {
+                if (!querySnapshot.empty) {
+                  // User has an active pass
+                  const passData = querySnapshot.docs[0].data();
+                  activePassContainer.style.display = "block";
+                  activePassContainer.innerHTML = `
+                    <h3>Your SellerPASS</h3>
+                    <div class="pass-details">
+                      <p><strong>Company Name:</strong> ${passData.companyName}</p>
+                      <p><strong>Description:</strong> ${passData.companyDescription}</p>
+                      <p><strong>Status:</strong> ${passData.status}</p>
+                      <h4>Employees:</h4>
+                      <ul>
+                        ${passData.employees.map(emp => 
+                          `<li>${emp.email} (${emp.role}) ${emp.role === "CEO" ? "(You)" : ""}</li>`
+                        ).join("")}
+                      </ul>
+                    </div>
+                  `;
+                  formContainer.style.display = "none";
+                } else {
+                  // Check if user has a pending request
+                  db.collection("sellerPasses")
+                    .where("ownerId", "==", userData.uid)
+                    .where("status", "in", ["pending", "under_review"])
+                    .get()
+                    .then((querySnapshot) => {
+                      if (!querySnapshot.empty) {
+                        statusDiv.innerHTML = "<p>Your SellerPASS request is pending approval.</p>";
+                        formContainer.style.display = "none";
+                      } else {
+                        // User can apply
+                        statusDiv.innerHTML = "<p>SellerPASS season is open! You can apply now.</p>";
+                        formContainer.style.display = "block";
+                        setupSellerPassForm(userData);
+                      }
+                    });
+                }
+              });
+          }
+        }
+
+        // Check if user is an employee in any company
+        if (userData.status !== "Admin") {
+          db.collection("sellerPasses")
+            .where("employees", "array-contains", { email: userData.email })
+            .where("status", "==", "approved")
+            .get()
+            .then((querySnapshot) => {
+              if (!querySnapshot.empty) {
+                const passData = querySnapshot.docs[0].data();
+                const employeeRole = passData.employees.find(emp => emp.email === userData.email).role;
+                
+                activePassContainer.style.display = "block";
+                activePassContainer.innerHTML = `
+                  <h3>Your SellerPASS</h3>
+                  <div class="pass-details">
+                    <p><strong>Company Name:</strong> ${passData.companyName}</p>
+                    <p><strong>Description:</strong> ${passData.companyDescription}</p>
+                    <p><strong>Your Role:</strong> ${employeeRole}</p>
+                    <p><strong>Status:</strong> ${passData.status}</p>
+                  </div>
+                `;
+              }
+            });
+        }
+      });
+
+    // Setup form if it's visible
+    if (formContainer.style.display !== "none") {
+      setupSellerPassForm(userData);
+    }
+  }
+
+  function setupSellerPassForm(userData) {
+    const form = document.getElementById("seller-pass-form");
+    const employeesContainer = document.getElementById("employees-container");
+    const addEmployeeBtn = document.getElementById("add-employee");
+
+    // Add employee row
+    addEmployeeBtn.addEventListener("click", () => {
+      const newEmployeeDiv = document.createElement("div");
+      newEmployeeDiv.className = "employee-entry";
+      newEmployeeDiv.innerHTML = `
+        <input type="email" class="employee-email" placeholder="Employee email" required>
+        <select class="employee-role" required>
+          <option value="">Select role</option>
+          <option value="CEO">CEO</option>
+          <option value="Manager">Manager</option>
+          <option value="Employee">Employee</option>
+        </select>
+        <button type="button" class="remove-employee">Remove</button>
+      `;
+      employeesContainer.appendChild(newEmployeeDiv);
+      
+      // Add remove functionality
+      newEmployeeDiv.querySelector(".remove-employee").addEventListener("click", () => {
+        if (employeesContainer.children.length > 2) {
+          newEmployeeDiv.remove();
+        } else {
+          showCustomAlert("A company must have at least 2 employees", "error");
+        }
+      });
+    });
+
+    // Add remove functionality to existing employees
+    document.querySelectorAll(".remove-employee").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        if (employeesContainer.children.length > 2) {
+          e.target.closest(".employee-entry").remove();
+        } else {
+          showCustomAlert("A company must have at least 2 employees", "error");
+        }
+      });
+    });
+
+    // Form submission
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const companyName = document.getElementById("company-name").value.trim();
+      const companyDescription = document.getElementById("company-description").value.trim();
+      
+      // Collect employees
+      const employees = [];
+      let ceoCount = 0;
+      
+      document.querySelectorAll(".employee-entry").forEach(entry => {
+        const email = entry.querySelector(".employee-email").value.trim();
+        const role = entry.querySelector(".employee-role").value;
+        
+        if (role === "CEO") ceoCount++;
+        
+        employees.push({
+          email: email,
+          role: role
+        });
+      });
+      
+      // Validate
+      if (ceoCount !== 1) {
+        showCustomAlert("There must be exactly one CEO in the company", "error");
+        return;
+      }
+      
+      if (employees.length < 2) {
+        showCustomAlert("A company must have at least 2 employees", "error");
+        return;
+      }
+      
+      // Check if CEO is the current user
+      const ceo = employees.find(emp => emp.role === "CEO");
+      if (ceo.email !== userData.email) {
+        showCustomAlert("You must be the CEO of the company", "error");
+        return;
+      }
+      
+      // Check if employees exist in the system
+      const emailPromises = employees.map(emp => 
+        db.collection("users").where("email", "==", emp.email).get()
+      );
+      
+      Promise.all(emailPromises)
+        .then(results => {
+          const allExist = results.every(snapshot => !snapshot.empty);
+          if (!allExist) {
+            showCustomAlert("One or more employees are not registered in the system", "error");
+            return;
+          }
+          
+          // Create the request
+          const requestData = {
+            companyName: companyName,
+            companyDescription: companyDescription,
+            employees: employees,
+            ownerId: userData.uid,
+            ownerEmail: userData.email,
+            ownerName: userData.name,
+            status: "pending",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          
+          db.collection("sellerPasses")
+            .add(requestData)
+            .then(() => {
+              showCustomAlert("SellerPASS request submitted successfully!", "success");
+              renderSellerPassContent(userData);
+            })
+            .catch(error => {
+              showCustomAlert(`Error submitting request: ${error.message}`, "error");
+            });
+        })
+        .catch(error => {
+          showCustomAlert(`Error verifying employees: ${error.message}`, "error");
+        });
+    });
+  }
+
+  function loadPendingRequests(userData) {
+    const requestsBody = document.getElementById("requests-body");
+    
+    db.collection("sellerPasses")
+      .where("status", "in", ["pending", "under_review"])
+      .orderBy("createdAt", "desc")
+      .get()
+      .then(querySnapshot => {
+        if (querySnapshot.empty) {
+          requestsBody.innerHTML = "<tr><td colspan='5'>No pending requests</td></tr>";
+          return;
+        }
+        
+        requestsBody.innerHTML = "";
+        querySnapshot.forEach(doc => {
+          const request = doc.data();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${request.companyName}</td>
+            <td>${request.companyDescription}</td>
+            <td>${request.ownerName} (${request.ownerEmail})</td>
+            <td>${request.status}</td>
+            <td>
+              <button class="approve-btn" data-id="${doc.id}">Approve</button>
+              <button class="reject-btn" data-id="${doc.id}">Reject</button>
+            </td>
+          `;
+          requestsBody.appendChild(row);
+        });
+        
+        // Add event listeners to buttons
+        document.querySelectorAll(".approve-btn").forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            updateRequestStatus(e.target.dataset.id, "approved", userData);
+          });
+        });
+        
+        document.querySelectorAll(".reject-btn").forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            updateRequestStatus(e.target.dataset.id, "rejected", userData);
+          });
+        });
+      })
+      .catch(error => {
+        showCustomAlert(`Error loading requests: ${error.message}`, "error");
+        requestsBody.innerHTML = "<tr><td colspan='5'>Error loading requests</td></tr>";
+      });
+  }
+
+  function updateRequestStatus(requestId, status, userData) {
+    db.collection("sellerPasses")
+      .doc(requestId)
+      .update({
+        status: status,
+        reviewedBy: userData.name,
+        reviewedAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+        showCustomAlert(`Request ${status} successfully`, "success");
+        loadPendingRequests(userData);
+      })
+      .catch(error => {
+        showCustomAlert(`Error updating request: ${error.message}`, "error");
+      });
   }
 
   function setupNavigation(userData) {
@@ -246,16 +590,13 @@ if (typeof firebase === "undefined") {
             });
         }
         break;
+      case "seller-pass":
+        mainContent.innerHTML = getSellerPassView(userData);
+        renderSellerPassContent(userData);
+        break;
       case "eshim-pay":
         mainContent.innerHTML = getEshimPayView(userData);
         renderEshimPayContent(userData);
-        break;
-      case "transactions":
-        mainContent.innerHTML = getTransactionsView(userData);
-        renderTransactionsContent(userData);
-        break;
-      case "settings":
-        mainContent.innerHTML = getSettingsView();
         break;
       default:
         mainContent.innerHTML = "<h2>Page Not Found</h2>";
@@ -290,47 +631,6 @@ if (typeof firebase === "undefined") {
         "<p>Unable to generate QR code. Please try again later.</p>";
     }
 
-    fetchTransactions(userData)
-      .then((transactions) => {
-        const transactionsBody = document.getElementById("transactions-body");
-        if (transactions.length === 0) {
-          transactionsBody.innerHTML =
-            "<tr><td colspan='5'>No transactions found.</td></tr>";
-          return;
-        }
-        transactionsBody.innerHTML = transactions
-          .map(
-            (transaction) => `
-        <tr>
-          <td>${new Date(
-            transaction.timestamp.toMillis()
-          ).toLocaleString()}</td>
-          <td>${
-            transaction.senderId === userData.accID
-              ? "You"
-              : transaction.senderId
-          }</td>
-          <td>${
-            transaction.receiverId === userData.accID
-              ? "You"
-              : transaction.receiverId
-          }</td>
-          <td>${transaction.amount}</td>
-          <td>${transaction.description || "N/A"}</td>
-        </tr>
-      `
-          )
-          .join("");
-      })
-      .catch((error) => {
-        showCustomAlert(
-          `Error fetching transactions: ${error.message}`,
-          "error"
-        );
-        document.getElementById("transactions-body").innerHTML =
-          "<tr><td colspan='5'>Failed to load transactions.</td></tr>";
-      });
-
     const transferForm = document.getElementById("transfer-form");
     if (transferForm) {
       transferForm.addEventListener("submit", (e) => {
@@ -338,107 +638,6 @@ if (typeof firebase === "undefined") {
         sendMoney(userData);
       });
     }
-  }
-
-  function renderTransactionsContent(userData) {
-    fetchTransactions(userData)
-      .then((transactions) => {
-        const transactionsBody = document.getElementById("transactions-body");
-        if (transactions.length === 0) {
-          transactionsBody.innerHTML =
-            "<tr><td colspan='5'>No transactions found.</td></tr>";
-          return;
-        }
-        transactionsBody.innerHTML = transactions
-          .map(
-            (transaction) => `
-        <tr>
-          <td>${new Date(
-            transaction.timestamp.toMillis()
-          ).toLocaleString()}</td>
-          <td>${
-            transaction.senderId === userData.accID
-              ? "You"
-              : transaction.senderId
-          }</td>
-          <td>${
-            transaction.receiverId === userData.accID
-              ? "You"
-              : transaction.receiverId
-          }</td>
-          <td>${transaction.amount}</td>
-          <td>${transaction.description || "N/A"}</td>
-        </tr>
-      `
-          )
-          .join("");
-      })
-      .catch((error) => {
-        showCustomAlert(
-          `Error fetching transactions: ${error.message}`,
-          "error"
-        );
-        document.getElementById("transactions-body").innerHTML =
-          "<tr><td colspan='5'>Failed to load transactions.</td></tr>";
-      });
-  }
-
-  function fetchTransactions(userData) {
-    return new Promise((resolve, reject) => {
-      let query = db.collection("transactions");
-      if (userData.status !== "Admin") {
-        const senderQuery = query
-          .where("senderId", "==", userData.accID)
-          .orderBy("timestamp", "desc")
-          .get();
-        const receiverQuery = query
-          .where("receiverId", "==", userData.accID)
-          .orderBy("timestamp", "desc")
-          .get();
-
-        Promise.all([senderQuery, receiverQuery])
-          .then(([senderSnapshot, receiverSnapshot]) => {
-            const transactions = [];
-            const transactionIds = new Set();
-
-            senderSnapshot.forEach((doc) => {
-              if (!transactionIds.has(doc.id)) {
-                transactions.push(doc.data());
-                transactionIds.add(doc.id);
-              }
-            });
-
-            receiverSnapshot.forEach((doc) => {
-              if (!transactionIds.has(doc.id)) {
-                transactions.push(doc.data());
-                transactionIds.add(doc.id);
-              }
-            });
-
-            transactions.sort((a, b) =>
-              b.timestamp.toMillis() - a.timestamp.toMillis()
-            );
-            resolve(transactions);
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      } else {
-        query
-          .orderBy("timestamp", "desc")
-          .get()
-          .then((querySnapshot) => {
-            const transactions = [];
-            querySnapshot.forEach((doc) => {
-              transactions.push(doc.data());
-            });
-            resolve(transactions);
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      }
-    });
   }
 
   function sendMoney(userData) {
@@ -517,8 +716,6 @@ if (typeof firebase === "undefined") {
               .commit()
               .then(() => {
                 showCustomAlert("Money sent successfully", "success");
-                // Refresh transaction history
-                renderEshimPayContent(userData);
                 // Clear form
                 document.getElementById("transfer-form").reset();
               })
@@ -541,107 +738,55 @@ if (typeof firebase === "undefined") {
       });
   }
 
-  function searchTransactionsByEmail() {
-    const email = document.getElementById("email-search").value.trim();
-    if (!email) {
-      showCustomAlert("Please enter an email address", "error");
-      return;
-    }
-
-    db.collection("users")
-      .where("email", "==", email)
-      .get()
-      .then((querySnapshot) => {
-        if (querySnapshot.empty) {
-          showCustomAlert("No user found with this email", "error");
-          document.getElementById("transactions-body").innerHTML =
-            "<tr><td colspan='5'>No user found with this email.</td></tr>";
-          return;
-        }
-
-        const user = querySnapshot.docs[0].data();
-        const uid = user.accID || querySnapshot.docs[0].id;
-
-        const senderQuery = db
-          .collection("transactions")
-          .where("senderId", "==", uid)
-          .orderBy("timestamp", "desc")
-          .get();
-        const receiverQuery = db
-          .collection("transactions")
-          .where("receiverId", "==", uid)
-          .orderBy("timestamp", "desc")
-          .get();
-
-        Promise.all([senderQuery, receiverQuery])
-          .then(([senderSnapshot, receiverSnapshot]) => {
-            const transactions = [];
-            const transactionIds = new Set();
-
-            senderSnapshot.forEach((doc) => {
-              if (!transactionIds.has(doc.id)) {
-                transactions.push(doc.data());
-                transactionIds.add(doc.id);
-              }
-            });
-
-            receiverSnapshot.forEach((doc) => {
-              if (!transactionIds.has(doc.id)) {
-                transactions.push(doc.data());
-                transactionIds.add(doc.id);
-              }
-            });
-
-            transactions.sort((a, b) =>
-              b.timestamp.toMillis() - a.timestamp.toMillis()
-            );
-
-            const transactionsBody = document.getElementById("transactions-body");
-            if (transactions.length === 0) {
-              transactionsBody.innerHTML =
-                "<tr><td colspan='5'>No transactions found for this user.</td></tr>";
-              return;
-            }
-
-            transactionsBody.innerHTML = transactions
-              .map(
-                (transaction) => `
-            <tr>
-              <td>${new Date(
-                transaction.timestamp.toMillis()
-              ).toLocaleString()}</td>
-              <td>${
-                transaction.senderId === uid ? user.name : transaction.senderId
-              }</td>
-              <td>${
-                transaction.receiverId === uid
-                  ? user.name
-                  : transaction.receiverId
-              }</td>
-              <td>${transaction.amount}</td>
-              <td>${transaction.description || "N/A"}</td>
-            </tr>
-          `
-              )
-              .join("");
-          })
-          .catch((error) => {
-            showCustomAlert(
-              `Error fetching transactions: ${error.message}`,
-              "error"
-            );
-            document.getElementById("transactions-body").innerHTML =
-              "<tr><td colspan='5'>Failed to load transactions.</td></tr>";
-          });
-      })
-      .catch((error) => {
-        showCustomAlert(`Error finding user: ${error.message}`, "error");
-        document.getElementById("transactions-body").innerHTML =
-          "<tr><td colspan='5'>Failed to find user.</td></tr>";
-      });
-  }
-
   function getProfileView(userData) {
+    // Check if user has a SellerPASS
+    let sellerPassHtml = "";
+    
+    db.collection("sellerPasses")
+      .where("ownerId", "==", userData.uid)
+      .where("status", "==", "approved")
+      .get()
+      .then(querySnapshot => {
+        if (!querySnapshot.empty) {
+          const passData = querySnapshot.docs[0].data();
+          sellerPassHtml = `
+            <div class="seller-pass-card">
+              <h3>Your SellerPASS</h3>
+              <p><strong>Company:</strong> ${passData.companyName}</p>
+              <p><strong>Description:</strong> ${passData.companyDescription}</p>
+              <p><strong>Your Role:</strong> CEO</p>
+            </div>
+          `;
+        } else {
+          // Check if user is an employee in any company
+          return db.collection("sellerPasses")
+            .where("employees", "array-contains", { email: userData.email })
+            .where("status", "==", "approved")
+            .get();
+        }
+      })
+      .then(querySnapshot => {
+        if (querySnapshot && !querySnapshot.empty) {
+          const passData = querySnapshot.docs[0].data();
+          const employeeRole = passData.employees.find(emp => emp.email === userData.email).role;
+          
+          sellerPassHtml = `
+            <div class="seller-pass-card">
+              <h3>Your SellerPASS</h3>
+              <p><strong>Company:</strong> ${passData.companyName}</p>
+              <p><strong>Description:</strong> ${passData.companyDescription}</p>
+              <p><strong>Your Role:</strong> ${employeeRole}</p>
+            </div>
+          `;
+        }
+        
+        // Update the profile view with the SellerPASS information
+        document.querySelector(".profile-card").innerHTML += sellerPassHtml;
+      })
+      .catch(error => {
+        console.error("Error fetching SellerPASS data:", error);
+      });
+
     return `
       <h2>Profile</h2>
       <div class="profile-card">
@@ -881,7 +1026,4 @@ if (typeof firebase === "undefined") {
       });
     });
   }
-
-  // Make searchTransactionsByEmail globally available
-  window.searchTransactionsByEmail = searchTransactionsByEmail;
 }
