@@ -1,7 +1,11 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import axios from 'axios';
-
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+import axios from "axios";
 
 const firebaseConfig = {
   apiKey: "AIzaSyABomqBTkkti8Wzxu2H0UKX1s-UZBoFN0c",
@@ -15,6 +19,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app); // Initialize Firestore
 
 // Telegram configuration from environment variables
 const BOT_TOKEN = import.meta.env.VITE_BOT_TOKEN;
@@ -28,12 +33,12 @@ async function sendTelegramLog(message) {
       text: message,
     });
   } catch (error) {
-    console.error('Error sending Telegram log:', error.message);
+    console.error("Error sending Telegram log:", error.message);
   }
 }
 
-const loginForm = document.querySelector('.flip-card__front .flip-card__form');
-loginForm.addEventListener('submit', async (e) => {
+const loginForm = document.querySelector(".flip-card__front .flip-card__form");
+loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = loginForm.querySelector('input[name="email"]').value;
   const password = loginForm.querySelector('input[name="password"]').value;
@@ -41,17 +46,24 @@ loginForm.addEventListener('submit', async (e) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    await sendTelegramLog(`User logged in: ${user.email} at ${new Date().toISOString()}`);
-    alert('Muvaffaqiyatli kirish!');
-    // Redirect or handle successful login here
+
+    await sendTelegramLog(
+      `User logged in: ${user.email} \n at ${new Date().toISOString()}`
+    );
+
+    alert("Muvaffaqiyatli kirish!");
   } catch (error) {
-    await sendTelegramLog(`Login failed for ${email}: ${error.message} at ${new Date().toISOString()}`);
+    await sendTelegramLog(
+      `Login failed for ${email}: ${
+        error.message
+      } at ${new Date().toISOString()}`
+    );
     alert(`Xatolik: ${error.message}`);
   }
 });
 
-const signupForm = document.querySelector('.flip-card__back .flip-card__form');
-signupForm.addEventListener('submit', async (e) => {
+const signupForm = document.querySelector(".flip-card__back .flip-card__form");
+signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const name = signupForm.querySelector('input[type="name"]').value;
   const email = signupForm.querySelector('input[name="email"]').value;
@@ -60,16 +72,38 @@ signupForm.addEventListener('submit', async (e) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    await sendTelegramLog(`New user registered: ${name} (${user.email}) at ${new Date().toISOString()}`);
-    alert('Muvaffaqiyatli ro‘yxatdan o‘tish!');
+
+    // Add user to Firestore
+    const docRef = await addDoc(collection(db, "users"), {
+      name: name,
+      accID: user.uid,
+      email: email,
+      balance: 0,
+    });
+
+    console.log("Document written with ID: ", docRef.id);
+
+    await sendTelegramLog(
+      `New user registered: ${name} (${
+        user.email
+      }) at ${new Date().toISOString()}`
+    );
+    alert("Muvaffaqiyatli ro‘yxatdan o‘tingiz!");
+
   } catch (error) {
-    await sendTelegramLog(`Signup failed for ${email}: ${error.message} at ${new Date().toISOString()}`);
+    await sendTelegramLog(
+      `Signup failed for ${email}: ${
+        error.message
+      } at ${new Date().toISOString()}`
+    );
     alert(`Xatolik: ${error.message}`);
   }
 });
 
-const toggleSwitch = document.querySelector('.toggle');
-toggleSwitch.addEventListener('change', () => {
-  const flipCard = document.querySelector('.flip-card__inner');
-  flipCard.style.transform = toggleSwitch.checked ? 'rotateY(180deg)' : 'rotateY(0deg)';
+const toggleSwitch = document.querySelector(".toggle");
+toggleSwitch.addEventListener("change", () => {
+  const flipCard = document.querySelector(".flip-card__inner");
+  flipCard.style.transform = toggleSwitch.checked
+    ? "rotateY(180deg)"
+    : "rotateY(0deg)";
 });
