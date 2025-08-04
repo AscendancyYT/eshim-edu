@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="uz">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../Styles/login.css" />
+    <link rel="icon" href="../Styles/Images/logo.png" />
+    <title>Kirish</title>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="card-switch">
+        <label class="switch">
+          <input class="toggle" type="checkbox" />
+          <span class="slider"></span>
+          <span class="card-side"></span>
+          <div class="flip-card__inner">
+            <div class="flip-card__front">
+              <div class="title">Kirish</div>
+              <form action="" class="flip-card__form">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  name="email"
+                  class="flip-card__input"
+                />
+                <input
+                  type="password"
+                  placeholder="Parol"
+                  name="password"
+                  class="flip-card__input"
+                />
+                <button class="flip-card__btn">Kirish!</button>
+              </form>
+            </div>
+            <div class="flip-card__back">
+              <div class="title">Ro‘yxatdan o‘tish</div>
+              <form action="" class="flip-card__form">
+                <input
+                  type="name"
+                  placeholder="Ism"
+                  class="flip-card__input"
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  name="email"
+                  class="flip-card__input"
+                />
+                <input
+                  type="password"
+                  placeholder="Parol"
+                  name="password"
+                  class="flip-card__input"
+                />
+                <button class="flip-card__btn">Tasdiqlash!</button>
+              </form>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+    <script type="module" src="../src/login.js"></script>
+  </body>
+</html>
