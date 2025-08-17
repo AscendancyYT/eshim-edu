@@ -35,7 +35,7 @@ const firebaseConfig = {
   messagingSenderId: "499244396754",
   appId: "1:499244396754:web:b8add55832b41b1ee5bd0b",
   measurementId: "G-RKW9CEM3NQ",
-  databaseURL: "https://eshim-edu-eclipse-default-rtdb.firebaseio.com/",
+ databaseURL: "https://eshim-edu-eclipse-default-rtdb.firebaseio.com/",
 };
 
 const app = initializeApp(firebaseConfig);
