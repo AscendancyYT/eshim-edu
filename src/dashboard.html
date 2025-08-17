@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../styles/dashboard.css" />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <title>Mening Sahifam</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <div class="top">
+          <img src="../styles/images/eshim.png" alt="" />
+        </div>
+        <div class="center">
+          <a href="#" class="link" data-section="entertainment"
+            ><i class="bx bxs-joystick"></i> Entertainment</a
+          >
+          <a href="#" class="link" data-section="grades"
+            ><i class="bx bx-menu-alt-left"></i> Leaderboards</a
+          >
+          <a href="#" class="link" data-section="eshimpay"
+            ><i class="bx bxs-credit-card-alt"></i> EshimPAY</a
+          >
+          <a href="#" class="link" data-section="grades"
+            ><i class="bx bxs-cog"></i>Settings</a
+          >
+          <a href="#" class="link sellerPASS hidden"
+            ><i class="bx bxl-slack"></i> SellerPASS</a
+          >
+          <a href="#" class="link sellerDashboard hidden"
+            ><i class="bx bxs-dashboard"></i> Seller Dashboard</a
+          >
+          <a href="#" class="link managerDashboard hidden"
+            ><i class="bx bx-wallet-alt"></i> Manager Dashboard</a
+          >
+          <a href="#" class="link employeeDashboard hidden"
+            ><i class="bx bxs-hard-hat"></i>Employee Dashboard</a
+          >
+          <a href="#" class="link zavuchPlusPage" data-section="grades"
+            ><i class="bx bxs-graduation"></i>O'quvchilar</a
+          >
+        </div>
+        <div class="bottom" data-section="grades">
+          <h2 class="userProfilePic"></h2>
+          <h2 id="accaunt" class="accaunt">Akkaunt</h2>
+        </div>
+      </div>
+      <div class="content">
+        <h1><i class="bx bx-sidebar sidebarButton"></i> Mening Sahifam</h1>
+        <div class="section grades">
+          <ul class="coins"></ul>
+        </div>
+        <div class="section eshimpay hidden">
+          <h2>EshimPAY</h2>
+          <div class="eshimpay-content">
+            <p id="balanceId">Balance ID: Loading...</p>
+            <p id="balance">Balance: Loading...</p>
+          </div>
+        </div>
+        <div class="section entertainment hidden">
+          <h2>Entertainment</h2>
+          <div class="games-container">
+            <div class="game-content">
+              <h3>Math Guessing Game (Single Player)</h3>
+              <p>Guess a number between 1 and 100!</p>
+              <input type="number" id="guessInput" min="1" max="100" placeholder="Enter your guess" />
+              <button id="guessButton">Submit Guess</button>
+              <p id="gameHint">Start guessing!</p>
+              <p id="attempts">Attempts: 0</p>
+              <button id="resetGameButton" class="hidden">Play Again</button>
+            </div>
+            <div class="game-content math-duel">
+              <h3>Math Duel (Online Two Players)</h3>
+              <div id="requestSection">
+                <p>Invite a friend to play Math Duel!</p>
+                <input type="text" id="friendNameInput" placeholder="Enter friend's full name" />
+                <button id="sendRequestButton">Send Request</button>
+                <p id="requestStatus"></p>
+                <h4>Incoming Requests</h4>
+                <ul id="requestList"></ul>
+              </div>
+              <div id="gameSection" class="hidden">
+                <p id="duelStatus">Waiting for opponent's turn...</p>
+                <p id="duelProblem">Waiting for game to start...</p>
+                <input type="number" id="duelInput" placeholder="Enter your answer" disabled />
+                <button id="duelSubmitButton" class="hidden">Submit Answer</button>
+                <p id="duelTimer">Time Left: 10s</p>
+                <p id="duelScores">You: 0 | Opponent: 0</p>
+                <button id="duelExitButton">Exit Game</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal structure -->
+    <div id="gradeModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Grade Details</h2>
+        <p id="modalSubject"></p>
+        <p id="modalReward"></p>
+        <p id="modalCreatedAt"></p>
+      </div>
+    </div>
+
+    <script type="module" src="../functions/dashboard.js"></script>
+  </body>
+</html>
