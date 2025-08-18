@@ -14,7 +14,7 @@
     <div class="container">
       <div class="sidebar">
         <div class="top">
-          <img src="../styles/images/eshim.png" alt="" />
+          <img src="../styles/images/eshim.png" alt="Logo" />
         </div>
         <div class="center">
           <a href="#" class="link" data-section="entertainment"
@@ -27,7 +27,7 @@
             ><i class="bx bxs-credit-card-alt"></i> EshimPAY</a
           >
           <a href="#" class="link" data-section="grades"
-            ><i class="bx bxs-cog"></i>Settings</a
+            ><i class="bx bxs-cog"></i> Settings</a
           >
           <a href="#" class="link sellerPASS hidden"
             ><i class="bx bxl-slack"></i> SellerPASS</a
@@ -39,10 +39,10 @@
             ><i class="bx bx-wallet-alt"></i> Manager Dashboard</a
           >
           <a href="#" class="link employeeDashboard hidden"
-            ><i class="bx bxs-hard-hat"></i>Employee Dashboard</a
+            ><i class="bx bxs-hard-hat"></i> Employee Dashboard</a
           >
           <a href="#" class="link zavuchPlusPage" data-section="grades"
-            ><i class="bx bxs-graduation"></i>O'quvchilar</a
+            ><i class="bx bxs-graduation"></i> O'quvchilar</a
           >
         </div>
         <div class="bottom" data-section="grades">
@@ -51,7 +51,9 @@
         </div>
       </div>
       <div class="content">
-        <h1><i class="bx bx-sidebar sidebarButton"></i> Mening Sahifam</h1>
+        <h1>
+          <i class="bx bx-sidebar sidebarButton"></i> Mening Sahifam
+        </h1>
         <div class="section grades">
           <ul class="coins"></ul>
         </div>
@@ -89,14 +91,7 @@
                   id="friendNameInput"
                   placeholder="Enter friend's full name"
                 />
-                <button id="sendRequestButton">Send Request</button>
-                <p id="requestStatus"></p>
-                <h4>Incoming Requests</h4>
-                <ul id="requestList"></ul>
-              </div>
-              <div id="gameSection" class="hidden">
-                <p id="duelStatus">Waiting for opponent's turn...</p>
-                <p id="duelProblem">Waiting for game to start...</p>
+                <button id="sendRequestButton">Senderny for game to start...</p>
                 <input
                   type="number"
                   id="duelInput"
@@ -111,11 +106,8 @@
                 <button id="duelExitButton">Exit Game</button>
               </div>
             </div>
-            <!-- FAST MATH BLITZ -->
             <div class="game-content math-blitz">
               <h3>⚡ Fast Math Blitz (Real-Time Multiplayer)</h3>
-
-              <!-- Lobby / Invite -->
               <div id="blitzLobby">
                 <p>Challenge a friend to a real-time math race!</p>
                 <input
@@ -125,20 +117,15 @@
                 />
                 <button id="blitzInviteBtn">Send Invite</button>
                 <p id="blitzInviteStatus"></p>
-
                 <h4>Incoming Blitz Invites</h4>
                 <ul id="blitzIncomingList"></ul>
               </div>
-
-              <!-- Game -->
               <div id="blitzGame" class="hidden">
                 <div id="blitzTop">
                   <p id="blitzStatus">Get Ready…</p>
                   <p id="blitzTimer">Next problem in: —</p>
                 </div>
-
                 <h2 id="blitzProblem">—</h2>
-
                 <div id="blitzAnswerRow">
                   <input
                     type="number"
@@ -148,26 +135,18 @@
                   />
                   <button id="blitzSubmitBtn" class="hidden">Submit</button>
                 </div>
-
                 <div id="blitzScoresRow">
                   <p id="blitzScore">You: 0 | Opponent: 0</p>
                   <p id="blitzStreak">🔥 Streak: 0</p>
                 </div>
-
                 <div id="blitzFeed" aria-live="polite"></div>
-
                 <button id="blitzExitBtn">Exit Blitz</button>
               </div>
             </div>
-            <!-- ♟️ CHESS (Online Two Players) -->
             <div class="game-content chess">
               <h3>♟️ Chess (Online Two Players)</h3>
-
-              <!-- Lobby -->
               <div id="chessLobby">
-                <p>
-                  Invite a friend (by full name in Firestore users.fullName):
-                </p>
+                <p>Invite a friend (by full name in Firestore users.fullName):</p>
                 <input
                   id="chessFriendInput"
                   type="text"
@@ -175,12 +154,9 @@
                 />
                 <button id="chessInviteBtn">Send Invite</button>
                 <p id="chessInviteStatus"></p>
-
                 <h4>Incoming Chess Invites</h4>
                 <ul id="chessIncomingList"></ul>
               </div>
-
-              <!-- Game -->
               <div id="chessGame" class="hidden">
                 <div class="chessTop">
                   <p id="chessStatus">—</p>
@@ -189,13 +165,11 @@
                     <button id="chessExitBtn">Exit Game</button>
                   </div>
                 </div>
-
                 <div
                   id="chessBoard"
                   class="chess-board"
                   aria-label="Chess board"
                 ></div>
-
                 <div class="chessBottom">
                   <p id="chessTurn">Turn: —</p>
                   <p id="chessCaptured">Captured: —</p>
@@ -206,8 +180,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Modal structure -->
     <div id="gradeModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
@@ -217,7 +189,6 @@
         <p id="modalCreatedAt"></p>
       </div>
     </div>
-
     <script type="module" src="../functions/dashboard.js"></script>
   </body>
 </html>
