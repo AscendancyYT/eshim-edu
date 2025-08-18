@@ -10,7 +10,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
 }
 
 .container {
@@ -49,7 +49,7 @@ body {
 
 .content {
   flex: 1;
-  background-color: #FAFAFA;
+  background-color: #fafafa;
   transition: margin-left 0.4s ease;
   margin-left: 255px;
   height: 100vh;
@@ -103,7 +103,7 @@ body {
 .container .sidebar .center .link {
   width: 255px;
   height: 32px;
-  color: #3F3F46;
+  color: #3f3f46;
   padding-left: 15px;
   transition: all 0.2s linear;
   display: flex;
@@ -113,8 +113,8 @@ body {
 }
 
 .container .sidebar .center .link:hover {
-  background-color: #E5E7EB;
-  color: #1F2937;
+  background-color: #e5e7eb;
+  color: #1f2937;
 }
 
 .container .sidebar .bottom {
@@ -130,20 +130,20 @@ body {
 }
 
 .container .sidebar .bottom:hover {
-  background-color: #E5E7EB;
-  color: #1F2937;
+  background-color: #e5e7eb;
+  color: #1f2937;
 }
 
 .container .sidebar .bottom .userProfilePic {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #E5E7EB;
+  background-color: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 19px;
-  color: #1F2937;
+  color: #1f2937;
 }
 
 .container .sidebar .bottom .accaunt {
@@ -196,7 +196,7 @@ body {
   cursor: pointer;
   font-size: xx-large;
   font-weight: 900;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -217,7 +217,7 @@ body {
 .container .content .entertainment h3,
 .container .content .entertainment h4 {
   font-size: 28px;
-  color: #1F2937;
+  color: #1f2937;
   margin-bottom: 20px;
 }
 
@@ -260,7 +260,7 @@ body {
 .container .content .game-content button {
   padding: 10px 20px;
   font-size: 16px;
-  background-color: #1F2937;
+  background-color: #1f2937;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -269,7 +269,7 @@ body {
 }
 
 .container .content .game-content button:hover {
-  background-color: #3F3F46;
+  background-color: #3f3f46;
   transform: scale(1.05);
 }
 
@@ -279,7 +279,7 @@ body {
 
 .container .content .game-content p {
   font-size: 18px;
-  color: #3F3F46;
+  color: #3f3f46;
   margin: 10px 0;
 }
 
@@ -361,17 +361,42 @@ body {
 
 .close:hover,
 .close:focus {
-  color: #1F2937;
+  color: #1f2937;
 }
 
 .modal-content h2 {
   margin-bottom: 20px;
   font-size: 24px;
-  color: #1F2937;
+  color: #1f2937;
 }
 
 .modal-content p {
   margin: 10px 0;
   font-size: 16px;
-  color: #3F3F46;
+  color: #3f3f46;
+}
+
+.math-blitz #blitzProblem {
+  font-size: 2rem;
+  margin: 8px 0 12px;
+  transition: transform 0.08s ease;
+}
+.math-blitz .feed-item {
+  opacity: 0.9;
+  margin: 4px 0;
+  font-size: 0.95rem;
+}
+.math-blitz #blitzAnswer[disabled] {
+  opacity: 0.6;
+}
+.math-blitz #blitzTop,
+.math-blitz #blitzScoresRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.math-blitz #blitzAnswerRow {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 6px;
 }

@@ -86,6 +86,26 @@ const sidebar = $(".sidebar");
 const content = $(".content");
 const sidebarBtn = $(".sidebarButton");
 
+const blitzFriendInput = $("#blitzFriendInput");
+const blitzInviteBtn = $("#blitzInviteBtn");
+const blitzInviteStatus = $("#blitzInviteStatus");
+const blitzIncomingList = $("#blitzIncomingList");
+
+const blitzLobby = $("#blitzLobby");
+const blitzGame = $("#blitzGame");
+
+const blitzStatus = $("#blitzStatus");
+const blitzTimer = $("#blitzTimer");
+const blitzProblem = $("#blitzProblem");
+
+const blitzAnswer = $("#blitzAnswer");
+const blitzSubmitBtn = $("#blitzSubmitBtn");
+const blitzExitBtn = $("#blitzExitBtn");
+
+const blitzScore = $("#blitzScore");
+const blitzStreak = $("#blitzStreak");
+const blitzFeed = $("#blitzFeed");
+
 const setText = (el, text) => {
   if (el) el.textContent = String(text);
 };
@@ -597,3 +617,377 @@ sidebarBtn?.addEventListener("click", () => {
 
   enterLobby();
 })();
+
+
+const BLITZ_WIN_SCORE = 20;
+const BLITZ_PROBLEM_INTERVAL_MS = 3000; 
+const BLITZ_ANSWER_WINDOW_MS = 8000;   
+
+
+// local state
+let blitzGameId = null;
+let blitzUnsub = null;
+let blitzReqUnsub = null;
+let blitzTimerInterval = null;
+let myBlitzStreak = 0;
+
+// helpers
+function blitzShow(el){ el && el.classList.remove("hidden"); }
+function blitzHide(el){ el && el.classList.add("hidden"); }
+function blitzSet(el, txt){ if(el) el.textContent = String(txt); }
+
+function blitzGenerateProblem(){
+  const ops = ["+","-","*"];
+  const a = Math.floor(Math.random()*30)+1;
+  const b = Math.floor(Math.random()*30)+1;
+  const op = ops[Math.floor(Math.random()*ops.length)];
+  let ans = 0;
+  if(op==="+") ans=a+b;
+  else if(op==="*") ans=a*b;
+  else ans=a-b;
+  return {
+    id: crypto.randomUUID(),
+    a, b, op, ans,
+    text: `${a} ${op} ${b} = ?`
+  };
+}
+
+function blitzEnterLobby(){
+  blitzShow(blitzLobby);
+  blitzHide(blitzGame);
+  blitzSet(blitzStatus, "Get Ready…");
+  blitzSet(blitzProblem, "—");
+  blitzSet(blitzTimer, "Next problem in: —");
+  blitzSet(blitzScore, "You: 0 | Opponent: 0");
+  blitzSet(blitzStreak, "🔥 Streak: 0");
+  if(blitzAnswer){ blitzAnswer.value=""; blitzAnswer.disabled = true; }
+  blitzSubmitBtn?.classList.add("hidden");
+  blitzFeed.innerHTML = "";
+}
+
+function blitzEnterGame(){
+  blitzHide(blitzLobby);
+  blitzShow(blitzGame);
+}
+
+function blitzClearIntervals(){
+  if(blitzTimerInterval){ clearInterval(blitzTimerInterval); blitzTimerInterval=null; }
+}
+
+function blitzStartNextProblemTx(gameId){
+  const gref = ref(rtdb, `blitzGames/${gameId}`);
+  return runTransaction(gref, (g)=>{
+    if(!g || g.status!=="active") return g;
+
+    // only start next if current is missing or expired/answered
+    const now = Date.now();
+    const needNew = !g.current || g.current.answeredBy || (now - (g.current.startedAt||0) > BLITZ_PROBLEM_INTERVAL_MS);
+    if(!needNew) return g;
+
+    const prob = blitzGenerateProblem();
+    g.current = {
+      id: prob.id,
+      text: prob.text,
+      ans: prob.ans,
+      startedAt: Date.now(),
+      answeredBy: null
+    };
+    g.nextAt = Date.now() + BLITZ_PROBLEM_INTERVAL_MS; // for UI countdown
+    return g;
+  });
+}
+
+async function blitzCreateGameIfMissing(gameId, p1, p2){
+  const gref = ref(rtdb, `blitzGames/${gameId}`);
+  await runTransaction(gref, (exist)=>{
+    if(exist) return exist;
+    const prob = blitzGenerateProblem();
+    return {
+      players: [p1, p2],
+      scores: {[p1]:0,[p2]:0},
+      streaks: {[p1]:0,[p2]:0},
+      status: "active",
+      createdAt: serverTimestamp(),
+      current: {
+        id: prob.id,
+        text: prob.text,
+        ans: prob.ans,
+        startedAt: Date.now(),
+        answeredBy: null
+      },
+      nextAt: Date.now() + BLITZ_PROBLEM_INTERVAL_MS
+    };
+  });
+}
+
+function blitzJoinGame(gameId){
+  blitzGameId = gameId;
+  blitzEnterGame();
+  blitzListen(gameId);
+}
+
+function blitzListen(gameId){
+  if(blitzUnsub){ blitzUnsub(); blitzUnsub=null; }
+
+  const gref = ref(rtdb, `blitzGames/${gameId}`);
+  const cb = (snap)=>{
+    const g = snap.val();
+    if(!g){
+      blitzEnterLobby();
+      blitzGameId = null;
+      return;
+    }
+
+    // who’s who
+    const me = currentPlayerName;
+    const opponent = (g.players||[]).find(n=>n!==me) || "Opponent";
+
+    // scores + streaks
+    const myScore = (g.scores?.[me]) ?? 0;
+    const oppScore = (g.scores?.[opponent]) ?? 0;
+    blitzSet(blitzScore, `You: ${myScore} | Opponent: ${oppScore}`);
+    myBlitzStreak = (g.streaks?.[me]) ?? 0;
+    blitzSet(blitzStreak, `🔥 Streak: ${myBlitzStreak}`);
+
+    // current problem
+    if(g.current){
+      blitzSet(blitzProblem, g.current.text || "—");
+      const enable = g.status==="active" && !g.current.answeredBy;
+      if(blitzAnswer) blitzAnswer.disabled = !enable;
+      if(blitzSubmitBtn) (enable ? blitzSubmitBtn.classList.remove("hidden") : blitzSubmitBtn.classList.add("hidden"));
+      // timer
+      blitzClearIntervals();
+      const endAt = Number(g.nextAt)||Date.now();
+      const tick = ()=>{
+        const remain = Math.max(0, Math.ceil((endAt - Date.now())/1000));
+        blitzSet(blitzTimer, `Next problem in: ${remain}s`);
+      };
+      blitzTimerInterval = setInterval(tick, 500);
+      tick();
+    }else{
+      blitzSet(blitzProblem, "—");
+      blitzSet(blitzTimer, "Next problem in: —");
+      if(blitzAnswer) blitzAnswer.disabled=true;
+      blitzSubmitBtn?.classList.add("hidden");
+    }
+
+    // end state
+    if(g.status==="finished"){
+      const p0 = g.players?.[0]; const p1 = g.players?.[1];
+      const w = ((g.scores?.[p0]||0) >= BLITZ_WIN_SCORE) ? p0
+              : ((g.scores?.[p1]||0) >= BLITZ_WIN_SCORE) ? p1
+              : ( (g.scores?.[p0]||0) > (g.scores?.[p1]||0) ? p0 : p1 );
+      blitzSet(blitzStatus, `Game Over! ${w===me?"You":w} Win(s)!`);
+      if(blitzAnswer) blitzAnswer.disabled=true;
+      blitzSubmitBtn?.classList.add("hidden");
+      blitzClearIntervals();
+    }else{
+      blitzSet(blitzStatus, "Answer fast! First correct gets the point.");
+    }
+  };
+
+  onValue(gref, cb);
+  blitzUnsub = ()=> off(gref, "value", cb);
+}
+
+async function blitzSubmit(){
+  if(!blitzGameId) return;
+  const val = parseInt(blitzAnswer?.value ?? "", 10);
+  if(Number.isNaN(val)){
+    blitzSet(blitzStatus, "Enter a number, math wizard 🧙‍♂️");
+    return;
+  }
+
+  const gref = ref(rtdb, `blitzGames/${blitzGameId}`);
+
+  await runTransaction(gref, (g)=>{
+    if(!g || g.status!=="active" || !g.current) return g;
+
+    // already answered?
+    if(g.current.answeredBy) return g;
+
+    // expired?
+    const age = Date.now() - (g.current.startedAt||0);
+    if(age > BLITZ_ANSWER_WINDOW_MS) return g;
+
+    const correct = val === Number(g.current.ans);
+    const me = currentPlayerName;
+    const players = g.players||[];
+    const opp = players.find(n=>n!==me);
+
+    // handle correct
+    if(correct){
+      // award point & streaks
+      const curr = g.scores?.[me] ?? 0;
+      const sMe  = (g.streaks?.[me] ?? 0) + 1;
+      const sOpp = 0; // reset opponent streak on your point
+      g.scores = {...g.scores, [me]: curr+1};
+      g.streaks = {...g.streaks, [me]: sMe, [opp]: sOpp};
+      g.current.answeredBy = me;
+      g.lastFeed = `${me} answered correctly! (+1) 🔥x${sMe}`;
+
+      // win check
+      if(g.scores[me] >= BLITZ_WIN_SCORE){
+        g.status = "finished";
+        g.finishedAt = serverTimestamp();
+        return g;
+      }
+
+      // queue next problem now (instant loop = dopamine)
+      const np = blitzGenerateProblem();
+      g.current = {
+        id: np.id, text: np.text, ans: np.ans,
+        startedAt: Date.now(), answeredBy: null
+      };
+      g.nextAt = Date.now() + BLITZ_PROBLEM_INTERVAL_MS;
+      return g;
+    } else {
+      // incorrect = tiny feedback only; no state change (prevents spam exploits)
+      // store feed for both clients
+      g.lastFeed = `${me} missed. Keep trying!`;
+      return g;
+    }
+  });
+
+  if(blitzAnswer) blitzAnswer.value="";
+}
+
+async function blitzExit(){
+  blitzClearIntervals();
+  if(blitzGameId){
+    const gref = ref(rtdb, `blitzGames/${blitzGameId}`);
+    await update(gref, { status: "aborted", abortedAt: serverTimestamp() });
+    blitzGameId = null;
+  }
+  if(blitzUnsub){ blitzUnsub(); blitzUnsub=null; }
+  blitzEnterLobby();
+}
+
+// live feed listener (optional but juicy)
+(function blitzFeedLoop(){
+  const path = ()=> blitzGameId ? `blitzGames/${blitzGameId}/lastFeed` : null;
+  let lastSeen = "";
+  setInterval(async ()=>{
+    if(!blitzGameId) return;
+    const lf = await get(ref(rtdb, path()));
+    if(lf.exists()){
+      const msg = lf.val();
+      if(msg && msg!==lastSeen){
+        lastSeen = msg;
+        const p = document.createElement("p");
+        p.textContent = msg;
+        p.className = "feed-item";
+        blitzFeed.prepend(p);
+        // little sparkle
+        p.animate([{transform:"scale(0.9)"},{transform:"scale(1)"}],{duration:150,iterations:1});
+      }
+    }
+  }, 600);
+})();
+
+/************ Invitations (separate channel: blitzRequests) ************/
+function renderBlitzIncoming(listSnap){
+  if(!blitzIncomingList) return;
+  blitzIncomingList.innerHTML = "";
+  listSnap.forEach((child)=>{
+    const req = child.val();
+    const id = child.key;
+    if(req.status !== "pending") return;
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>Blitz invite from <strong>${req.from}</strong></span>
+      <div>
+        <button data-id="${id}" class="blitzAccept">Accept</button>
+        <button data-id="${id}" class="blitzDecline">Decline</button>
+      </div>
+    `;
+    blitzIncomingList.appendChild(li);
+  });
+}
+
+async function blitzSendInvite(friendName){
+  const q = fsQuery(collection(db, "users"), where("fullName","==", friendName));
+  const snap = await getDocs(q);
+  if(snap.empty){ blitzSet(blitzInviteStatus,"No user with that name."); return; }
+
+  const reqRef = push(ref(rtdb, "blitzRequests"));
+  const gameId = reqRef.key;
+  await set(reqRef, {
+    id: gameId,
+    from: currentPlayerName,
+    to: friendName,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  blitzSet(blitzInviteStatus, `Invite sent to ${friendName}!`);
+  if(blitzFriendInput) blitzFriendInput.value="";
+
+  // watch only my request to update on accept/decline
+  const cb = async (s)=>{
+    const data = s.val();
+    if(!data) return;
+    if(data.status==="accepted"){
+      await blitzCreateGameIfMissing(gameId, data.from, data.to);
+      blitzJoinGame(gameId);
+      if(blitzReqUnsub){ blitzReqUnsub(); blitzReqUnsub=null; }
+    } else if(data.status==="declined"){
+      blitzSet(blitzInviteStatus, "Your invite was declined.");
+      if(blitzReqUnsub){ blitzReqUnsub(); blitzReqUnsub=null; }
+    }
+  };
+  onValue(reqRef, cb);
+  blitzReqUnsub = ()=> off(reqRef, "value", cb);
+}
+
+async function blitzAccept(id){
+  const rr = ref(rtdb, `blitzRequests/${id}`);
+  const s = await get(rr);
+  if(!s.exists()) return;
+  const req = s.val();
+  await update(rr, { status: "accepted", acceptedAt: serverTimestamp() });
+  await blitzCreateGameIfMissing(id, req.from, req.to);
+  blitzJoinGame(id);
+}
+
+async function blitzDecline(id){
+  const rr = ref(rtdb, `blitzRequests/${id}`);
+  await update(rr, { status: "declined" });
+  blitzSet(blitzInviteStatus, "Invite declined.");
+}
+
+// global incoming listener for me
+if(currentPlayerName){
+  const myBlitzIncoming = rtdbQuery(
+    ref(rtdb, "blitzRequests"),
+    orderByChild("to"),
+    equalTo(currentPlayerName)
+  );
+  onValue(myBlitzIncoming, (snap)=> renderBlitzIncoming(snap));
+}
+
+// events
+blitzInviteBtn?.addEventListener("click", ()=>{
+  const friend = (blitzFriendInput?.value || "").trim();
+  if(!friend) return blitzSet(blitzInviteStatus, "Enter a friend's full name.");
+  if(!currentPlayerName) return blitzSet(blitzInviteStatus, "Your profile name is missing.");
+  if(friend === currentPlayerName) return blitzSet(blitzInviteStatus, "Bro… you can’t invite yourself 😄");
+  blitzSendInvite(friend).catch(()=> blitzSet(blitzInviteStatus, "Failed to send invite."));
+});
+
+blitzIncomingList?.addEventListener("click", (e)=>{
+  const t = e.target;
+  if(!(t instanceof HTMLElement)) return;
+  const id = t.dataset.id;
+  if(!id) return;
+  if(t.classList.contains("blitzAccept")) blitzAccept(id).catch(console.error);
+  if(t.classList.contains("blitzDecline")) blitzDecline(id).catch(console.error);
+});
+
+blitzSubmitBtn?.addEventListener("click", ()=> blitzSubmit().catch(console.error));
+blitzAnswer?.addEventListener("keydown", (e)=>{
+  if(e.key==="Enter"){ e.preventDefault(); blitzSubmit().catch(console.error); }
+});
+blitzExitBtn?.addEventListener("click", ()=> blitzExit().catch(console.error));
+
+// ensure entertainment tab focuses friend input (you already do for Math Duel)

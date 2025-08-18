@@ -68,7 +68,13 @@
             <div class="game-content">
               <h3>Math Guessing Game (Single Player)</h3>
               <p>Guess a number between 1 and 100!</p>
-              <input type="number" id="guessInput" min="1" max="100" placeholder="Enter your guess" />
+              <input
+                type="number"
+                id="guessInput"
+                min="1"
+                max="100"
+                placeholder="Enter your guess"
+              />
               <button id="guessButton">Submit Guess</button>
               <p id="gameHint">Start guessing!</p>
               <p id="attempts">Attempts: 0</p>
@@ -78,7 +84,11 @@
               <h3>Math Duel (Online Two Players)</h3>
               <div id="requestSection">
                 <p>Invite a friend to play Math Duel!</p>
-                <input type="text" id="friendNameInput" placeholder="Enter friend's full name" />
+                <input
+                  type="text"
+                  id="friendNameInput"
+                  placeholder="Enter friend's full name"
+                />
                 <button id="sendRequestButton">Send Request</button>
                 <p id="requestStatus"></p>
                 <h4>Incoming Requests</h4>
@@ -87,11 +97,66 @@
               <div id="gameSection" class="hidden">
                 <p id="duelStatus">Waiting for opponent's turn...</p>
                 <p id="duelProblem">Waiting for game to start...</p>
-                <input type="number" id="duelInput" placeholder="Enter your answer" disabled />
-                <button id="duelSubmitButton" class="hidden">Submit Answer</button>
+                <input
+                  type="number"
+                  id="duelInput"
+                  placeholder="Enter your answer"
+                  disabled
+                />
+                <button id="duelSubmitButton" class="hidden">
+                  Submit Answer
+                </button>
                 <p id="duelTimer">Time Left: 10s</p>
                 <p id="duelScores">You: 0 | Opponent: 0</p>
                 <button id="duelExitButton">Exit Game</button>
+              </div>
+            </div>
+            <!-- FAST MATH BLITZ -->
+            <div class="game-content math-blitz">
+              <h3>⚡ Fast Math Blitz (Real-Time Multiplayer)</h3>
+
+              <!-- Lobby / Invite -->
+              <div id="blitzLobby">
+                <p>Challenge a friend to a real-time math race!</p>
+                <input
+                  type="text"
+                  id="blitzFriendInput"
+                  placeholder="Enter friend's full name"
+                />
+                <button id="blitzInviteBtn">Send Invite</button>
+                <p id="blitzInviteStatus"></p>
+
+                <h4>Incoming Blitz Invites</h4>
+                <ul id="blitzIncomingList"></ul>
+              </div>
+
+              <!-- Game -->
+              <div id="blitzGame" class="hidden">
+                <div id="blitzTop">
+                  <p id="blitzStatus">Get Ready…</p>
+                  <p id="blitzTimer">Next problem in: —</p>
+                </div>
+
+                <h2 id="blitzProblem">—</h2>
+
+                <div id="blitzAnswerRow">
+                  <input
+                    type="number"
+                    id="blitzAnswer"
+                    placeholder="Your answer"
+                    disabled
+                  />
+                  <button id="blitzSubmitBtn" class="hidden">Submit</button>
+                </div>
+
+                <div id="blitzScoresRow">
+                  <p id="blitzScore">You: 0 | Opponent: 0</p>
+                  <p id="blitzStreak">🔥 Streak: 0</p>
+                </div>
+
+                <div id="blitzFeed" aria-live="polite"></div>
+
+                <button id="blitzExitBtn">Exit Blitz</button>
               </div>
             </div>
           </div>
