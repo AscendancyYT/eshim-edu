@@ -555,12 +555,9 @@ sidebarBtn?.addEventListener("click", () => {
   enterLobby();
 })();
 
-// ========================= BLITZ MODE (fixed) =========================
-
-// tuning: align problem cadence with answer window to avoid race conditions
-const BLITZ_WIN_SCORE = 20;
-const BLITZ_PROBLEM_INTERVAL_MS = 8000; // next problem cadence
-const BLITZ_ANSWER_WINDOW_MS = 8000;    // valid answer window (matches interval)
+const BLITZ_WIN_SCORE = 10;
+const BLITZ_PROBLEM_INTERVAL_MS = 8000;
+const BLITZ_ANSWER_WINDOW_MS = 8000;
 
 // local state
 let blitzGameId = null;
@@ -623,8 +620,7 @@ function blitzStartNextProblemTx(gameId){
     const now = Date.now();
     const started = g.current?.startedAt ?? 0;
     const answered = !!g.current?.answeredBy;
-    const expired = now - started > BLITZ_PROBLEM_INTERVAL_MS;
-
+    const expired = now - started > BLITZ_PROBLEM_INTERVAL_MS
     const needNew = !g.current || answered || expired;
     if(!needNew) return g;
 
@@ -937,4 +933,5 @@ blitzAnswer?.addEventListener("keydown", (e)=>{
   if(e.key==="Enter"){ e.preventDefault(); blitzSubmit().catch(console.error); }
 });
 blitzExitBtn?.addEventListener("click", ()=> blitzExit().catch(console.error));
+
 
