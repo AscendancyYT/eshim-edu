@@ -400,3 +400,61 @@ body {
   gap: 8px;
   margin: 8px 0 6px;
 }
+
+.chess-board {
+  display: grid;
+  grid-template-columns: repeat(8, 56px);
+  gap: 2px;
+  user-select: none;
+  border: 6px solid #333;
+  border-radius: 12px;
+  padding: 6px;
+  background: #333;
+  width: 900px;
+}
+.chess-square {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: transform 0.05s;
+}
+.chess-square.light {
+  background: #eeeed2;
+  color: #111;
+}
+.chess-square.dark {
+  background: #769656;
+  color: #fff;
+}
+.chess-square.sel {
+  outline: 4px solid #f6f669;
+}
+.chess-square.move {
+  box-shadow: inset 0 0 0 6px rgba(0, 0, 0, 0.15);
+}
+.chess-square.capture {
+  box-shadow: inset 0 0 0 6px rgba(255, 0, 0, 0.25);
+}
+.chessTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+  gap: 8px;
+}
+.chessRight button {
+  margin-left: 6px;
+}
+.game-content.chess h3 {
+  margin-bottom: 8px;
+}
+.chessBottom {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}

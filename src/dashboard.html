@@ -159,6 +159,49 @@
                 <button id="blitzExitBtn">Exit Blitz</button>
               </div>
             </div>
+            <!-- ♟️ CHESS (Online Two Players) -->
+            <div class="game-content chess">
+              <h3>♟️ Chess (Online Two Players)</h3>
+
+              <!-- Lobby -->
+              <div id="chessLobby">
+                <p>
+                  Invite a friend (by full name in Firestore users.fullName):
+                </p>
+                <input
+                  id="chessFriendInput"
+                  type="text"
+                  placeholder="Enter friend's full name"
+                />
+                <button id="chessInviteBtn">Send Invite</button>
+                <p id="chessInviteStatus"></p>
+
+                <h4>Incoming Chess Invites</h4>
+                <ul id="chessIncomingList"></ul>
+              </div>
+
+              <!-- Game -->
+              <div id="chessGame" class="hidden">
+                <div class="chessTop">
+                  <p id="chessStatus">—</p>
+                  <div class="chessRight">
+                    <button id="chessFlipBtn" title="Flip board">Flip</button>
+                    <button id="chessExitBtn">Exit Game</button>
+                  </div>
+                </div>
+
+                <div
+                  id="chessBoard"
+                  class="chess-board"
+                  aria-label="Chess board"
+                ></div>
+
+                <div class="chessBottom">
+                  <p id="chessTurn">Turn: —</p>
+                  <p id="chessCaptured">Captured: —</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -935,3 +935,476 @@ blitzAnswer?.addEventListener("keydown", (e)=>{
 blitzExitBtn?.addEventListener("click", ()=> blitzExit().catch(console.error));
 
 
+const chessFriendInput = document.getElementById("chessFriendInput");
+const chessInviteBtn    = document.getElementById("chessInviteBtn");
+const chessInviteStatus = document.getElementById("chessInviteStatus");
+const chessIncomingList = document.getElementById("chessIncomingList");
+
+const chessLobby   = document.getElementById("chessLobby");
+const chessGame    = document.getElementById("chessGame");
+const chessBoardEl = document.getElementById("chessBoard");
+const chessStatus  = document.getElementById("chessStatus");
+const chessTurnEl  = document.getElementById("chessTurn");
+const chessCapturedEl = document.getElementById("chessCaptured");
+const chessExitBtn = document.getElementById("chessExitBtn");
+const chessFlipBtn = document.getElementById("chessFlipBtn");
+
+function cShow(el){ el && el.classList.remove("hidden"); }
+function cHide(el){ el && el.classList.add("hidden"); }
+function cSet(el, txt){ if(el) el.textContent = String(txt); }
+
+const PIECE = {
+  wp:"♙", wr:"♖", wn:"♘", wb:"♗", wq:"♕", wk:"♔",
+  bp:"♟", br:"♜", bn:"♞", bb:"♝", bq:"♛", bk:"♚",
+};
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+let chessGameId = null;
+let chessUnsub = null;
+let myChessColor = null; // 'w' | 'b'
+let chessFlip = false;   // whether the local view is flipped
+let selectedIdx = null;
+let legalDestinations = [];
+
+function fenToBoard(fen){
+  const [boardPart] = fen.split(" ");
+  const rows = boardPart.split("/");
+  const board = [];
+  for (let r=0; r<8; r++){
+    const row = rows[r];
+    for (const ch of row){
+      if (/\d/.test(ch)) board.push(...Array(Number(ch)).fill(""));
+      else {
+        const isWhite = ch === ch.toUpperCase();
+        const color = isWhite ? "w" : "b";
+        const pt = ch.toLowerCase();
+        const map = {p:"p", r:"r", n:"n", b:"b", q:"q", k:"k"};
+        board.push(color + map[pt]);
+      }
+    }
+  }
+  return board; // length 64, from a8..h1
+}
+function boardToFen(board, turn="w"){
+  let out="", count=0;
+  for (let i=0;i<64;i++){
+    const cell = board[i];
+    if (cell==="") count++;
+    else {
+      if (count){ out += String(count); count=0;}
+      const color = cell[0], t = cell[1];
+      const map = {p:"p", r:"r", n:"n", b:"b", q:"q", k:"k"};
+      const letter = color==="w" ? map[t].toUpperCase() : map[t];
+      out += letter;
+    }
+    if (i%8===7){
+      if (count){ out += String(count); count=0; }
+      if (i!==63) out += "/";
+    }
+  }
+  return `${out} ${turn}`;
+}
+const idxToRC = (idx)=> ({ r: Math.floor(idx/8), c: idx%8 });
+const rcToIdx = (r,c)=> r*8 + c;
+const inBounds = (r,c)=> r>=0 && r<8 && c>=0 && c<8;
+const isWhite = (p)=> p && p[0]==="w";
+const isBlack = (p)=> p && p[0]==="b";
+const sameColor = (a,b)=> !!a && !!b && a[0]===b[0];
+const oppColor  = (a,b)=> !!a && !!b && a[0]!==b[0];
+
+/** generate pseudo-legal moves (no castling/en passant; we’ll prevent moving when not your turn) */
+function genMoves(board, fromIdx){
+  const src = board[fromIdx];
+  if (!src) return [];
+  const color = src[0], type = src[1];
+  const {r,c} = idxToRC(fromIdx);
+  const moves = [];
+  const forward = (color==="w") ? -1 : 1;    // board 0 is a8 (top-left)
+
+  function pushIfEmpty(rr,cc){
+    if(!inBounds(rr,cc)) return false;
+    const t = board[rcToIdx(rr,cc)];
+    if (t===""){ moves.push(rcToIdx(rr,cc)); return true; }
+    return false;
+  }
+  function pushIfCapture(rr,cc){
+    if(!inBounds(rr,cc)) return;
+    const t = board[rcToIdx(rr,cc)];
+    if (t && t[0]!==color) moves.push(rcToIdx(rr,cc));
+  }
+  function rays(dirs){
+    for (const [dr,dc] of dirs){
+      let rr=r+dr, cc=c+dc;
+      while(inBounds(rr,cc)){
+        const t = board[rcToIdx(rr,cc)];
+        if (t===""){ moves.push(rcToIdx(rr,cc)); }
+        else { if (t[0]!==color) moves.push(rcToIdx(rr,cc)); break; }
+        rr+=dr; cc+=dc;
+      }
+    }
+  }
+
+  if (type==="p"){
+    // one forward
+    if (pushIfEmpty(r+forward, c)){
+      // double from rank 6 (white pawns start row 6) or rank 1 (black pawns start row 1)
+      if ((color==="w" && r===6) || (color==="b" && r===1)){
+        pushIfEmpty(r+2*forward, c);
+      }
+    }
+    // captures
+    pushIfCapture(r+forward, c-1);
+    pushIfCapture(r+forward, c+1);
+  } else if (type==="n"){
+    const K = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+    for (const [dr,dc] of K){
+      const rr=r+dr, cc=c+dc;
+      if (!inBounds(rr,cc)) continue;
+      const t = board[rcToIdx(rr,cc)];
+      if (!t || t[0]!==color) moves.push(rcToIdx(rr,cc));
+    }
+  } else if (type==="b"){
+    rays([[-1,-1],[-1,1],[1,-1],[1,1]]);
+  } else if (type==="r"){
+    rays([[-1,0],[1,0],[0,-1],[0,1]]);
+  } else if (type==="q"){
+    rays([[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]]);
+  } else if (type==="k"){
+    for (let dr=-1; dr<=1; dr++){
+      for (let dc=-1; dc<=1; dc++){
+        if (!dr && !dc) continue;
+        const rr=r+dr, cc=c+dc;
+        if (!inBounds(rr,cc)) continue;
+        const t = board[rcToIdx(rr,cc)];
+        if (!t || t[0]!==color) moves.push(rcToIdx(rr,cc));
+      }
+    }
+  }
+  return moves;
+}
+
+/** detect simple “check” (for status text) */
+function kingInCheck(board, color){
+  let kingIdx = -1;
+  for (let i=0;i<64;i++) if (board[i]===color+"k") { kingIdx=i; break; }
+  if (kingIdx<0) return false;
+  // brute: if any opponent move hits king
+  for (let i=0;i<64;i++){
+    const p = board[i];
+    if (!p || p[0]===color) continue;
+    const moves = genMoves(board, i);
+    if (moves.includes(kingIdx)) return true;
+  }
+  return false;
+}
+
+function cEnterLobby(){
+  cShow(chessLobby); cHide(chessGame);
+  cSet(chessStatus,"—"); cSet(chessTurnEl,"Turn: —"); cSet(chessCapturedEl,"Captured: —");
+  if (chessBoardEl) chessBoardEl.innerHTML = "";
+  selectedIdx = null; legalDestinations = [];
+}
+function cEnterGame(){ cHide(chessLobby); cShow(chessGame); }
+
+function drawBoard(board){
+  if (!chessBoardEl) return;
+  chessBoardEl.innerHTML = "";
+  const order = [...Array(64).keys()];
+  const oriented = chessFlip ? order : order; // we’ll map display index below
+  for (let i=0;i<64;i++){
+    // display mapping: if flip true, show from h1..a8
+    const dispIdx = chessFlip ? 63 - i : i;
+    const {r,c} = idxToRC(dispIdx);
+    // model index (always 0..63 with 0=a8)
+    const modelIdx = dispIdx;
+    const piece = board[modelIdx];
+    const sq = document.createElement("div");
+    sq.className = "chess-square " + (((r+c)%2===0) ? "light" : "dark");
+    sq.dataset.idx = String(modelIdx);
+    if (piece) sq.textContent = PIECE[piece] || "•";
+
+    // selection/targets
+    if (selectedIdx === modelIdx) sq.classList.add("sel");
+    if (legalDestinations.includes(modelIdx)){
+      if (board[modelIdx]) sq.classList.add("capture");
+      else sq.classList.add("move");
+    }
+
+    sq.addEventListener("click", onSquareClick);
+    chessBoardEl.appendChild(sq);
+  }
+}
+
+function onSquareClick(e){
+  if (!chessGameId) return;
+  const idx = Number(e.currentTarget.dataset.idx || -1);
+  if (idx<0) return;
+  // We don’t have direct board here; we will read from snapshot cache in listener (stored on window)
+  const g = window.__chessState;
+  if (!g || g.status!=="active") return;
+
+  const board = g.board || [];
+  const myTurn = (g.turn === myChessColor);
+  if (!myTurn) return;
+
+  const piece = board[idx];
+  if (selectedIdx===null){
+    if (!piece || piece[0] !== myChessColor) return; // must select own piece
+    selectedIdx = idx;
+    legalDestinations = genMoves(board, idx)
+      // don’t allow landing on same-color
+      .filter(d => !sameColor(board[idx], board[d]));
+    drawBoard(board);
+  } else {
+    // if clicking same color piece, reselect
+    if (piece && piece[0]===myChessColor && idx!==selectedIdx){
+      selectedIdx = idx;
+      legalDestinations = genMoves(board, idx).filter(d => !sameColor(board[idx], board[d]));
+      drawBoard(board);
+      return;
+    }
+    // if destination allowed -> try move
+    if (legalDestinations.includes(idx)){
+      chessMakeMove(selectedIdx, idx).catch(console.error);
+    }
+    // clear selection regardless
+    selectedIdx = null; legalDestinations = [];
+    drawBoard(board);
+  }
+}
+
+async function chessMakeMove(fromIdx, toIdx){
+  if (!chessGameId) return;
+  const gref = ref(rtdb, `chessGames/${chessGameId}`);
+  await runTransaction(gref, (g)=>{
+    if (!g || g.status!=="active") return g;
+    const me = currentPlayerName;
+    if (!g.colors || g.colors[me] !== g.turn) return g;
+
+    const board = (g.board||[]).slice();
+    const src = board[fromIdx], dst = board[toIdx];
+    if (!src) return g;
+    const myColor = src[0];
+    if (myColor !== g.turn) return g;
+
+    // validate with same move generator
+    const moves = genMoves(board, fromIdx).filter(d=>!sameColor(board[fromIdx], board[d]));
+    if (!moves.includes(toIdx)) return g;
+
+    // make the move
+    const captured = dst || "";
+    board[toIdx] = src;
+    board[fromIdx] = "";
+
+    // promotion (auto-queen)
+    const {r:toR} = idxToRC(toIdx);
+    if (src[1]==="p" && ((myColor==="w" && toR===0) || (myColor==="b" && toR===7))){
+      board[toIdx] = myColor + "q";
+    }
+
+    // next turn
+    const nextTurn = (g.turn==="w") ? "b" : "w";
+    const capW = (g.captured?.w)||[];
+    const capB = (g.captured?.b)||[];
+    if (captured){
+      if (myColor==="w") capW.push(captured);
+      else capB.push(captured);
+    }
+
+    const newG = {
+      ...g,
+      board,
+      turn: nextTurn,
+      lastMove: { from: fromIdx, to: toIdx, piece: src, captured: captured||null },
+      captured: { w: capW, b: capB },
+      updatedAt: serverTimestamp()
+    };
+
+    // (Optional) simple check info
+    newG.inCheck = {
+      w: kingInCheck(board, "w"),
+      b: kingInCheck(board, "b")
+    };
+    return newG;
+  });
+}
+
+async function chessCreateGameIfMissing(gameId, p1, p2){
+  const gref = ref(rtdb, `chessGames/${gameId}`);
+  await runTransaction(gref, (exist)=>{
+    if (exist) return exist;
+    const board = fenToBoard(START_FEN);
+    // randomize colors
+    const whiteFirst = Math.random() < 0.5;
+    const colors = whiteFirst ? { [p1]:"w", [p2]:"b" } : { [p1]:"b", [p2]:"w" };
+    return {
+      players: [p1, p2],
+      colors,
+      board,
+      turn: "w",
+      status: "active",
+      createdAt: serverTimestamp(),
+      captured: { w:[], b:[] },
+      lastMove: null,
+      inCheck: { w:false, b:false }
+    };
+  });
+}
+
+function chessListen(gameId){
+  if (chessUnsub){ chessUnsub(); chessUnsub=null; }
+  const gref = ref(rtdb, `chessGames/${gameId}`);
+  const cb = (snap)=>{
+    const g = snap.val();
+    if (!g){ cEnterLobby(); chessGameId=null; return; }
+    window.__chessState = g; // for click handler access
+
+    const me = currentPlayerName;
+    myChessColor = g.colors?.[me] || null;
+
+    // top status
+    const opp = (g.players||[]).find(x=>x!==me) || "Opponent";
+    let status = `You are ${myChessColor==="w"?"White":"Black"} vs ${opp}.`;
+    if (g.status==="active"){
+      if (g.inCheck && g.inCheck[g.turn]) status += ` ${g.turn.toUpperCase()} is in check!`;
+    } else if (g.status==="finished"){
+      status = "Game Over.";
+    } else if (g.status==="aborted"){
+      status = "Game aborted.";
+    }
+    cSet(chessStatus, status);
+
+    const board = g.board||[];
+    drawBoard(board);
+
+    // turn + captured
+    cSet(chessTurnEl, `Turn: ${g.turn==="w"?"White":"Black"}`);
+    const capText = (arr)=>(arr||[]).map(x=>PIECE[x]||"").join(" ");
+    cSet(chessCapturedEl, `Captured — W: ${capText(g.captured?.w)}  |  B: ${capText(g.captured?.b)}`);
+
+    // disable interaction if not your turn
+    const myTurn = (g.turn === myChessColor) && g.status==="active";
+    chessBoardEl.style.pointerEvents = myTurn ? "auto" : "auto"; // still allow selecting to preview; enforcement in tx
+  };
+  onValue(gref, cb);
+  chessUnsub = ()=> off(gref, "value", cb);
+}
+
+function chessJoin(gameId){
+  chessGameId = gameId;
+  cEnterGame();
+  chessListen(gameId);
+  selectedIdx = null; legalDestinations = [];
+}
+
+/************ Invites ************/
+function renderChessIncoming(listSnap){
+  if (!chessIncomingList) return;
+  chessIncomingList.innerHTML = "";
+  listSnap.forEach((child)=>{
+    const req = child.val();
+    const id = child.key;
+    if (req.status !== "pending") return;
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span>Invite from <strong>${req.from}</strong></span>
+      <div>
+        <button data-id="${id}" class="chessAccept">Accept</button>
+        <button data-id="${id}" class="chessDecline">Decline</button>
+      </div>
+    `;
+    chessIncomingList.appendChild(li);
+  });
+}
+
+async function chessSendInvite(friendName){
+  const qSnap = await getDocs(fsQuery(collection(db,"users"), where("fullName","==", friendName)));
+  if (qSnap.empty){ cSet(chessInviteStatus,"No user with that name."); return; }
+
+  const reqRef = push(ref(rtdb, "chessRequests"));
+  const gameId = reqRef.key;
+  await set(reqRef, {
+    id: gameId, from: currentPlayerName, to: friendName,
+    status: "pending", createdAt: serverTimestamp()
+  });
+
+  cSet(chessInviteStatus, `Invite sent to ${friendName}!`);
+  if (chessFriendInput) chessFriendInput.value="";
+
+  // watch own request status
+  const cb = async (s)=>{
+    const d = s.val(); if (!d) return;
+    if (d.status==="accepted"){
+      await chessCreateGameIfMissing(gameId, d.from, d.to);
+      chessJoin(gameId);
+      off(reqRef, "value", cb);
+    } else if (d.status==="declined"){
+      cSet(chessInviteStatus, "Your invite was declined.");
+      off(reqRef, "value", cb);
+    }
+  };
+  onValue(reqRef, cb);
+}
+
+async function chessAccept(id){
+  const rr = ref(rtdb, `chessRequests/${id}`);
+  const s = await get(rr);
+  if (!s.exists()) return;
+  const req = s.val();
+  await update(rr, { status:"accepted", acceptedAt: serverTimestamp() });
+  await chessCreateGameIfMissing(id, req.from, req.to);
+  chessJoin(id);
+}
+async function chessDecline(id){
+  const rr = ref(rtdb, `chessRequests/${id}`);
+  await update(rr, { status:"declined" });
+  cSet(chessInviteStatus, "Invite declined.");
+}
+
+async function chessExit(){
+  if (chessGameId){
+    await update(ref(rtdb, `chessGames/${chessGameId}`), {
+      status:"aborted", abortedAt: serverTimestamp()
+    });
+    chessGameId = null;
+  }
+  if (chessUnsub){ chessUnsub(); chessUnsub=null; }
+  cEnterLobby();
+}
+
+/************ Global incoming listener ************/
+if (currentPlayerName){
+  const myChessIncoming = rtdbQuery(
+    ref(rtdb, "chessRequests"),
+    orderByChild("to"),
+    equalTo(currentPlayerName)
+  );
+  onValue(myChessIncoming, (snap)=> renderChessIncoming(snap));
+}
+
+/************ UI Events ************/
+chessInviteBtn?.addEventListener("click", ()=>{
+  const friend = (chessFriendInput?.value || "").trim();
+  if (!friend) return cSet(chessInviteStatus,"Enter a friend's full name.");
+  if (!currentPlayerName) return cSet(chessInviteStatus,"Your profile name is missing.");
+  if (friend === currentPlayerName) return cSet(chessInviteStatus,"You can’t invite yourself 😄");
+  chessSendInvite(friend).catch(()=> cSet(chessInviteStatus,"Failed to send invite."));
+});
+
+chessIncomingList?.addEventListener("click", (e)=>{
+  const t = e.target;
+  if (!(t instanceof HTMLElement)) return;
+  const id = t.dataset.id;
+  if (!id) return;
+  if (t.classList.contains("chessAccept")) chessAccept(id).catch(console.error);
+  if (t.classList.contains("chessDecline")) chessDecline(id).catch(console.error);
+});
+
+chessExitBtn?.addEventListener("click", ()=> chessExit().catch(console.error));
+chessFlipBtn?.addEventListener("click", ()=>{
+  chessFlip = !chessFlip;
+  const g = window.__chessState;
+  if (g?.board) drawBoard(g.board);
+});
+
+// default state
+cEnterLobby();
