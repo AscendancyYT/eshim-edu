@@ -564,8 +564,8 @@ let blitzGameId = null;
 let blitzUnsub = null;
 let blitzReqUnsub = null;
 let blitzTimerInterval = null;
-let blitzHeartbeatId = null;        // NEW: heartbeat to rotate problems
-let blitzFeedUnsub = null;          // NEW: unsubscribe for feed listener
+let blitzHeartbeatId = null;        
+let blitzFeedUnsub = null;         
 let myBlitzStreak = 0;
 
 // helpers
