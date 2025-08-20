@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../styles/dashboard.css" />
+  <title>Guess the Number</title>
+</head>
+<body>
+  <div class="content">
+    <h1>🎯 Math Guessing Game</h1>
+    <div class="game-content">
+      <p>Guess a number between 1 and 100!</p>
+      <input type="number" id="guessInput" min="1" max="100" placeholder="Enter your guess" />
+      <button id="guessButton">Submit Guess</button>
+      <p id="gameHint">Start guessing!</p>
+      <p id="attempts">Attempts: 0</p>
+      <button id="resetGameButton" class="hidden">Play Again</button>
+    </div>
+    <a href="dashboard.html" class="back-btn">⬅ Back</a>
+  </div>
+
+  <script type="module" src="../functions/guess.js"></script>
+</body>
+</html>
