@@ -123,6 +123,11 @@ sidebarLinks.forEach((el) => {
         sec.classList.remove("active");
       }
     });
+    
+    // Auto-close sidebar on mobile after selecting a tab
+    if (window.innerWidth <= 768) {
+      sidebar?.classList.remove("active");
+    }
   });
 });
 
