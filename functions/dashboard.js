@@ -43,9 +43,15 @@ const cardHolderEl = $("#cardHolder");
 const cardBalanceEl = $("#cardBalance");
 
 const payButton = $("#payButton");
+const receiveButton = $("#receiveButton");
+const scanQrButton = $("#scanQrButton");
 const paymentModal = $("#paymentModal");
+const qrModal = $("#qrModal");
+const qrScanModal = $("#qrScanModal");
 const confirmationModal = $("#confirmationModal");
 const closePayModal = $("#closePayModal");
+const closeQrModal = $("#closeQrModal");
+const closeScanModal = $("#closeScanModal");
 const closeConfirmModal = $("#closeConfirmModal");
 const paymentForm = $("#paymentForm");
 const recipientCardEl = $("#recipientCard");
@@ -61,6 +67,16 @@ const confirmRecipientNameEl = $("#confirmRecipientName");
 const confirmCardNumberEl = $("#confirmCardNumber");
 const confirmAmountEl = $("#confirmAmount");
 const confirmNoteEl = $("#confirmNote");
+
+const qrCodeEl = $("#qrCode");
+const qrAmountEl = $("#qrAmount");
+const qrNoteEl = $("#qrNote");
+const generateQrBtn = $("#generateQr");
+const qrInfoEl = $("#qrInfo");
+
+const qrDataInput = $("#qrDataInput");
+const parseQrBtn = $("#parseQr");
+const qrScanStatus = $("#qrScanStatus");
 
 // state
 let currentUser = null;
@@ -242,7 +258,158 @@ function getGradeColor(grade) {
 document.addEventListener("DOMContentLoaded", loadGrades);
 setInterval(loadGrades, 30000);
 
-// ================== PAYMENTS ==================
+// ================== QR CODE ==================
+function showQrModal() {
+  if (qrModal) {
+    qrModal.style.display = "block";
+    setTimeout(() => qrModal.classList.add("show"), 10);
+  }
+}
+
+function hideQrModal() {
+  qrModal?.classList.remove("show");
+  setTimeout(() => { if (qrModal) qrModal.style.display = "none"; }, 300);
+  resetQrForm();
+}
+
+function resetQrForm() {
+  if (qrAmountEl) qrAmountEl.value = "";
+  if (qrNoteEl) qrNoteEl.value = "";
+  if (qrCodeEl) qrCodeEl.innerHTML = "";
+  if (qrInfoEl) qrInfoEl.style.display = "none";
+}
+
+function generateQrCode() {
+  if (!currentUser) {
+    alert("Foydalanuvchi ma'lumotlari topilmadi");
+    return;
+  }
+
+  const amount = parseInt(qrAmountEl?.value || "0", 10);
+  const note = (qrNoteEl?.value || "").trim();
+
+  if (amount <= 0 || isNaN(amount)) {
+    alert("To'g'ri summa kiriting");
+    return;
+  }
+
+  // Create payment request data
+  const paymentRequest = {
+    recipientId: currentUser.balanceId,
+    recipientName: currentUser.fullName,
+    amount: amount,
+    note: note,
+    timestamp: Date.now()
+  };
+
+  // Create QR code data (JSON string)
+  const qrData = JSON.stringify(paymentRequest);
+  
+  // Generate QR code using QR Server API
+  const qrSize = 200;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(qrData)}`;
+  
+  // Display QR code
+  if (qrCodeEl) {
+    qrCodeEl.innerHTML = `
+      <img src="${qrApiUrl}" alt="QR Code" style="max-width: 100%; height: auto; border-radius: 8px;" />
+      <p style="margin-top: 15px; font-size: 14px; color: #666; text-align: center;">
+        Bu QR kodni scan qiling va ${amount.toLocaleString()} ESHIM oling
+      </p>
+    `;
+  }
+
+  // Show payment info
+  if (qrInfoEl) {
+    qrInfoEl.innerHTML = `
+      <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+        <h4 style="margin: 0 0 10px 0; color: #0c4a6e;">To'lov Ma'lumotlari:</h4>
+        <p style="margin: 5px 0; color: #0c4a6e;"><strong>Qabul Qiluvchi:</strong> ${currentUser.fullName}</p>
+        <p style="margin: 5px 0; color: #0c4a6e;"><strong>Karta ID:</strong> ${currentUser.balanceId}</p>
+        <p style="margin: 5px 0; color: #0c4a6e;"><strong>Summa:</strong> ${amount.toLocaleString()} ESHIM</p>
+        ${note ? `<p style="margin: 5px 0; color: #0c4a6e;"><strong>Izoh:</strong> ${note}</p>` : ''}
+      </div>
+    `;
+    qrInfoEl.style.display = "block";
+  }
+}
+
+// ================== QR CODE SCANNING ==================
+function showQrScanModal() {
+  if (qrScanModal) {
+    qrScanModal.style.display = "block";
+    setTimeout(() => qrScanModal.classList.add("show"), 10);
+  }
+}
+
+function hideQrScanModal() {
+  qrScanModal?.classList.remove("show");
+  setTimeout(() => { if (qrScanModal) qrScanModal.style.display = "none"; }, 300);
+  resetQrScanForm();
+}
+
+function resetQrScanForm() {
+  if (qrDataInput) qrDataInput.value = "";
+  if (qrScanStatus) {
+    qrScanStatus.style.display = "none";
+    qrScanStatus.className = "payment-status";
+  }
+}
+
+function showQrScanStatus(message, type = "info") {
+  if (qrScanStatus) {
+    qrScanStatus.textContent = message;
+    qrScanStatus.className = `payment-status ${type}`;
+    qrScanStatus.style.display = "block";
+  }
+}
+
+function parseQrData() {
+  const qrData = qrDataInput?.value?.trim();
+  
+  if (!qrData) {
+    showQrScanStatus("QR kod ma'lumotlarini kiriting", "error");
+    return;
+  }
+
+  try {
+    // Try to parse JSON data
+    const paymentRequest = JSON.parse(qrData);
+    
+    // Validate required fields
+    if (!paymentRequest.recipientId || !paymentRequest.amount) {
+      throw new Error("QR kodda yetarli ma'lumot yo'q");
+    }
+
+    // Validate amount
+    const amount = parseInt(paymentRequest.amount);
+    if (amount <= 0 || isNaN(amount)) {
+      throw new Error("Noto'g'ri summa");
+    }
+
+    // Check if trying to pay to self
+    if (paymentRequest.recipientId === currentUser?.balanceId) {
+      showQrScanStatus("O'zingizga pul jo'natib bo'lmaydi", "error");
+      return;
+    }
+
+    // Populate payment form with QR data
+    if (recipientCardEl) recipientCardEl.value = paymentRequest.recipientId;
+    if (paymentAmountEl) paymentAmountEl.value = amount;
+    if (paymentNoteEl) paymentNoteEl.value = paymentRequest.note || "";
+    
+    // Close scan modal and show payment modal
+    hideQrScanModal();
+    showPaymentModal();
+    
+    // Show success message in payment modal
+    showPaymentStatus(`QR kod muvaffaqiyatli o'qildi! ${paymentRequest.recipientName || 'Foydalanuvchi'}ga ${amount.toLocaleString()} ESHIM jo'natishni tasdiqlang.`, "success");
+    
+  } catch (error) {
+    console.error("QR kod tahlil qilishda xatolik:", error);
+    showQrScanStatus("QR kod formati noto'g'ri yoki buzilgan", "error");
+  }
+}
 function showPaymentModal() {
   if (paymentModal) {
     paymentModal.style.display = "block";
@@ -489,10 +656,14 @@ async function processPayment() {
 
 // events
 payButton?.addEventListener("click", showPaymentModal);
+receiveButton?.addEventListener("click", showQrModal);
+scanQrButton?.addEventListener("click", showQrScanModal);
 closePayModal?.addEventListener("click", () => {
   hidePaymentModal();
   resetPaymentForm(); // Reset when explicitly closing payment modal
 });
+closeQrModal?.addEventListener("click", hideQrModal);
+closeScanModal?.addEventListener("click", hideQrScanModal);
 closeConfirmModal?.addEventListener("click", hideConfirmationModal);
 cancelPaymentBtn?.addEventListener("click", () => {
   hidePaymentModal();
@@ -502,6 +673,8 @@ cancelConfirmationBtn?.addEventListener("click", () => {
   hideConfirmationModal(); 
   showPaymentModal(); 
 });
+generateQrBtn?.addEventListener("click", generateQrCode);
+parseQrBtn?.addEventListener("click", parseQrData);
 
 paymentForm?.addEventListener("submit", handlePaymentSubmit);
 finalConfirmBtn?.addEventListener("click", processPayment);
@@ -510,6 +683,12 @@ window.addEventListener("click", (event) => {
   if (event.target === paymentModal) {
     hidePaymentModal();
     resetPaymentForm(); // Reset when clicking outside payment modal
+  }
+  if (event.target === qrModal) {
+    hideQrModal();
+  }
+  if (event.target === qrScanModal) {
+    hideQrScanModal();
   }
   if (event.target === confirmationModal) {
     hideConfirmationModal(); // This already calls resetPaymentForm

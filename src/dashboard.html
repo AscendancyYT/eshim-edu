@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+<div id="qrModal" class="modal">
+      <div class="modal-content qr-modal">
+        <span class="close" id="closeQrModal">&times;</span>
+        <h2><i class="bx bx-qr" style="margin-right: 10px;"></i>QR Kod Yaratish</h2>
+        <p style="color: #666; margin-bottom: 20px;">Pul olish uchun QR kod yarating</p>
+        
+        <div class="form-group">
+          <label for="qrAmount">Summa (ESHIM):</label>
+          <input type="number" id="qrAmount" placeholder="Necha ESHIM olmoqchisiz..." min="1" required>
+        </div>
+        <div class="form-group">
+          <label for="qrNote">Izoh (ixtiyoriy):</label>
+          <input type="text" id="qrNote" placeholder="Nima uchun pul olmoqchisiz...">
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" onclick="document.getElementById('closeQrModal').click()">Bekor Qilish</button>
+          <button type="button" class="confirm-btn" id="generateQr">
+            <i class="bx bx-qr"></i> QR Kod Yaratish
+          </button>
+        </div>
+        
+        <div id="qrCode" class="qr-code-container"></div>
+        <div id="qrInfo" class="qr-info" style="display: none;"></div>
+      </div>
+    </div><!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -75,7 +100,7 @@
               </div>
               <div class="card-balance">
                 <div class="label">BALANS</div>
-                <div class="value" id="cardBalance">0 SO'M</div>
+                <div class="value" id="cardBalance">0 ESHIM</div>
               </div>
             </div>
             
@@ -86,7 +111,13 @@
               </div>
               <div class="card-actions">
                 <button class="pay-button" id="payButton">
-                  <i class="bx bx-send"></i> Pul Jo'natish
+                  <i class="bx bx-send"></i> Jo'natish
+                </button>
+                <button class="pay-button" id="scanQrButton">
+                  <i class="bx bx-scan"></i> QR Scan
+                </button>
+                <button class="pay-button" id="receiveButton">
+                  <i class="bx bx-qr"></i> QR Yaratish
                 </button>
               </div>
               <div class="chip"></div>
@@ -116,7 +147,7 @@
             <input type="text" id="recipientCard" placeholder="Balance ID ni kiriting..." required>
           </div>
           <div class="form-group">
-            <label for="paymentAmount">Summa:</label>
+            <label for="paymentAmount">Summa (ESHIM):</label>
             <input type="number" id="paymentAmount" placeholder="Summani kiriting..." min="1" required>
           </div>
           <div class="form-group">
@@ -129,6 +160,74 @@
           </div>
         </form>
         <div id="paymentStatus" class="payment-status"></div>
+      </div>
+    </div>
+
+    <div id="qrScanModal" class="modal">
+      <div class="modal-content qr-modal">
+        <span class="close" id="closeScanModal">&times;</span>
+        <h2><i class="bx bx-scan" style="margin-right: 10px;"></i>QR Kod O'qish</h2>
+        <p style="color: #666; margin-bottom: 20px;">QR kod ma'lumotlarini quyidagi maydonga kiriting</p>
+        
+        <div class="form-group">
+          <label for="qrDataInput">QR Kod Ma'lumotlari:</label>
+          <textarea 
+            id="qrDataInput" 
+            placeholder='{"recipientId":"123-ABC-456","recipientName":"Ism","amount":100,"note":"","timestamp":1234567890}'
+            rows="4"
+            style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; resize: vertical;"
+          ></textarea>
+          <small style="color: #666; font-size: 12px;">
+            Maslahat: QR kodni scan qilgandan so'ng, natijani bu yerga kiriting
+          </small>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" onclick="document.getElementById('closeScanModal').click()">Bekor Qilish</button>
+          <button type="button" class="confirm-btn" id="parseQr">
+            <i class="bx bx-check-circle"></i> To'lovni Tayyorlash
+          </button>
+        </div>
+        
+        <div id="qrScanStatus" class="payment-status" style="display: none;"></div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+          <h4 style="margin: 0 0 10px 0; color: #0c4a6e; font-size: 16px;">
+            <i class="bx bx-info-circle"></i> Qanday ishlatish:
+          </h4>
+          <ol style="margin: 0; padding-left: 20px; color: #0c4a6e; font-size: 14px; line-height: 1.6;">
+            <li>Telefoning QR scanner ilovasini oching</li>
+            <li>Qabul qiluvchining QR kodini scan qiling</li>
+            <li>Natijani yuqoridagi maydonga nusxalang</li>
+            <li>"To'lovni Tayyorlash" tugmasini bosing</li>
+            <li>To'lov ma'lumotlarini tasdiqlang</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+      <div class="modal-content qr-modal">
+        <span class="close" id="closeQrModal">&times;</span>
+        <h2><i class="bx bx-qr" style="margin-right: 10px;"></i>QR Kod Yaratish</h2>
+        <p style="color: #666; margin-bottom: 20px;">Pul olish uchun QR kod yarating</p>
+        
+        <div class="form-group">
+          <label for="qrAmount">Summa (ESHIM):</label>
+          <input type="number" id="qrAmount" placeholder="Necha ESHIM olmoqchisiz..." min="1" required>
+        </div>
+        <div class="form-group">
+          <label for="qrNote">Izoh (ixtiyoriy):</label>
+          <input type="text" id="qrNote" placeholder="Nima uchun pul olmoqchisiz...">
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" onclick="document.getElementById('closeQrModal').click()">Bekor Qilish</button>
+          <button type="button" class="confirm-btn" id="generateQr">
+            <i class="bx bx-qr"></i> QR Kod Yaratish
+          </button>
+        </div>
+        
+        <div id="qrCode" class="qr-code-container"></div>
+        <div id="qrInfo" class="qr-info" style="display: none;"></div>
       </div>
     </div>
 
@@ -151,5 +250,60 @@
     </div>
 
     <script type="module" src="../functions/dashboard.js"></script>
+
+    <style>
+      .qr-modal {
+        max-width: 450px;
+      }
+      
+      .qr-code-container {
+        text-align: center;
+        margin: 20px 0;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 2px dashed #cbd5e1;
+      }
+      
+      .qr-code-container:not(:empty) {
+        border: 2px solid #10b981;
+        background: #f0fdf4;
+      }
+      
+      .qr-info {
+        margin-top: 15px;
+      }
+      
+      .card-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .pay-button {
+        flex: 0 1 auto;
+        min-width: 90px;
+        white-space: nowrap;
+        font-size: 11px;
+        padding: 6px 10px;
+      }
+      
+      @media (max-width: 480px) {
+        .card-actions {
+          flex-direction: column;
+          width: 100%;
+        }
+        
+        .pay-button {
+          width: 100%;
+          margin: 0 !important;
+        }
+        
+        .qr-modal {
+          max-width: 95%;
+        }
+      }
+    </style>
   </body>
 </html>
