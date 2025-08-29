@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="../styles/dashboard.css" />
     <link
       href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
       rel="stylesheet"
     />
     <title>Mening Sahifam</title>
+    <link rel="stylesheet" href="../styles/dashboard.css" />
   </head>
   <body>
     <div class="container">
@@ -17,44 +17,119 @@
           <img src="../styles/images/eshim.png" alt="Logo" />
         </div>
         <div class="center">
-          <a href="#" class="link" data-section="grades"
-            ><i class="bx bx-menu-alt-left"></i> Reytinglar</a
-          >
-          <a href="#" class="link" data-section="eshimpay"
-            ><i class="bx bxs-credit-card-alt"></i> EshimPAY</a
-          >
-          <a href="#" class="link" data-section="grades"
-            ><i class="bx bxs-cog"></i> Sozlamalar</a
-          >
-          <a href="#" class="link sellerPASS hidden"
-            ><i class="bx bxl-slack"></i> SellerPASS</a
-          >
-          <a href="#" class="link sellerDashboard hidden"
-            ><i class="bx bxs-dashboard"></i> Seller Dashboard</a
-          >
-          <a href="#" class="link managerDashboard hidden"
-            ><i class="bx bx-wallet-alt"></i> Manager Dashboard</a
-          >
-          <a href="#" class="link employeeDashboard hidden"
-            ><i class="bx bxs-hard-hat"></i> Employee Dashboard</a
-          >
-          <a href="#" class="link zavuchPlusPage" data-section="grades"
-            ><i class="bx bxs-graduation"></i> O'quvchilar</a
-          >
+          <a href="#" class="link active" data-section="grades">
+            <i class="bx bx-book-alt"></i> Baholar
+          </a>
+          <a href="#" class="link" data-section="leaderboard">
+            <i class="bx bx-trophy"></i> Reytinglar
+          </a>
+          <a href="#" class="link" data-section="eshimpay">
+            <i class="bx bxs-credit-card-alt"></i> EshimPAY
+          </a>
+          <a href="#" class="link" data-section="settings">
+            <i class="bx bxs-cog"></i> Sozlamalar
+          </a>
         </div>
-        <div class="bottom" data-section="grades">
+        <div class="bottom" id="profileSection">
           <h2 class="userProfilePic"></h2>
           <h2 id="accaunt" class="accaunt">Akkaunt</h2>
         </div>
       </div>
 
       <div class="content">
-        <h1><i class="bx bx-sidebar sidebarButton"></i> Mening Sahifam</h1>
+        <h1>
+          <i class="bx bx-sidebar sidebarButton"></i>
+          <span id="pageTitle">Baholar</span>
+        </h1>
 
-        <div class="section grades">
-          <ul class="coins"></ul>
+        <!-- Teacher Dashboard Section -->
+        <div class="section teacher-dashboard hidden">
+          <h2>O‘qituvchi paneli</h2>
+          <div id="teacherActions">
+            <button id="addStudentBtn">Talaba qo‘shish</button>
+            <button id="removeStudentBtn">Talabani o‘chirish</button>
+            <button id="gradeStudentBtn">Baholash</button>
+          </div>
+          <div id="studentsList">Yuklanmoqda...</div>
         </div>
 
+        <!-- Grades Section -->
+        <div class="section grades active">
+          <div class="grades-overview">
+            <h2>Mening Baholarim</h2>
+            <div class="grades-stats">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="bx bx-trending-up"></i>
+                </div>
+                <div class="stat-info">
+                  <h3 id="averageGrade">0.00</h3>
+                  <p>O'rtacha Baho</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="bx bx-book-bookmark"></i>
+                </div>
+                <div class="stat-info">
+                  <h3 id="totalSubjects">0</h3>
+                  <p>Fanlar Soni</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="bx bx-medal"></i>
+                </div>
+                <div class="stat-info">
+                  <h3 id="totalGrades">0</h3>
+                  <p>Jami Baholar</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="gradesContainer">
+            <div class="loading">Baholar yuklanmoqda...</div>
+          </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div class="section leaderboard hidden">
+          <div class="leaderboard-container">
+            <h2>Balans Reytingi</h2>
+            <div class="leaderboard-stats">
+              <div class="rank-card">
+                <div class="rank-icon">
+                  <i class="bx bx-crown"></i>
+                </div>
+                <div class="rank-info">
+                  <h3 id="userRank">-</h3>
+                  <p>Mening O'rnim</p>
+                </div>
+              </div>
+              <div class="rank-card">
+                <div class="rank-icon">
+                  <i class="bx bx-coin"></i>
+                </div>
+                <div class="rank-info">
+                  <h3 id="userBalance">0</h3>
+                  <p>Mening Balansim</p>
+                </div>
+              </div>
+            </div>
+            <table id="balanceTable">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Ism</th>
+                  <th>Balans</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- EshimPAY Section -->
         <div class="section eshimpay hidden">
           <h2>EshimPAY</h2>
           <div class="credit-card">
@@ -65,9 +140,8 @@
               </div>
               <div class="card-type">TALABA KARTASI</div>
             </div>
-            
-            <div class="card-number" id="cardNumber">**** **** **** ****</div>
-            
+
+            <div class="card-number" id="cardNumber">0000 0000 0000 0000</div>
             <div class="card-details">
               <div class="card-holder">
                 <div class="label">KARTA EGASI</div>
@@ -78,78 +152,54 @@
                 <div class="value" id="cardBalance">0 ESHIM</div>
               </div>
             </div>
-            
+
             <div class="card-footer">
               <div class="valid-thru">
                 <div class="label">AMAL MUDDATI</div>
                 <div class="value">12/29</div>
               </div>
-              <div class="card-actions">
-                <button class="pay-button" id="payButton">
-                  <i class="bx bx-send"></i> Jo'natish
-                </button>
-              </div>
-              <div class="chip"></div>
+              <button class="pay-button" id="payButton">
+                <i class="bx bx-send"></i> Jo'natish
+              </button>
             </div>
           </div>
         </div>
+
+        <!-- Settings Section -->
+        <div class="section settings hidden">
+          <h2>Sozlamalar</h2>
+          <div class="settings-content">
+            <p>Sozlamalar sahifasi ishlab chiqilmoqda...</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div id="gradeModal" class="modal">
+    <!-- Transfer Modal -->
+    <div id="transferModal" class="modal hidden">
       <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Baho Tafsilotlari</h2>
-        <p id="modalSubject"></p>
-        <p id="modalReward"></p>
-        <p id="modalCreatedAt"></p>
-      </div>
-    </div>
+        <h3>Pul jo‘natish</h3>
+        <form id="transferForm">
+          <label>Karta raqami</label>
+          <input
+            type="text"
+            id="recipientCard"
+            placeholder="123-ABC-456"
+            required
+          />
 
-    <div id="paymentModal" class="modal">
-      <div class="modal-content payment-modal">
-        <span class="close" id="closePayModal">&times;</span>
-        <h2>Pul Jo'natish</h2>
-        <form id="paymentForm">
-          <div class="form-group">
-            <label for="recipientCard">Qabul Qiluvchi Karta Raqami:</label>
-            <input type="text" id="recipientCard" placeholder="Balance ID ni kiriting..." required>
-          </div>
-          <div class="form-group">
-            <label for="paymentAmount">Summa (ESHIM):</label>
-            <input type="number" id="paymentAmount" placeholder="Summani kiriting..." min="1" required>
-          </div>
-          <div class="form-group">
-            <label for="paymentNote">Izoh (ixtiyoriy):</label>
-            <input type="text" id="paymentNote" placeholder="Izoh qoldiring...">
-          </div>
-          <div class="form-actions">
-            <button type="button" class="cancel-btn" id="cancelPayment">Bekor Qilish</button>
-            <button type="submit" class="confirm-btn" id="confirmPayment">To'lashni Tasdiqlash</button>
+          <label>Summasi (ESHIM)</label>
+          <input type="number" id="transferAmount" min="1" required />
+
+          <div class="modal-actions">
+            <button type="submit" class="pay-button">Jo‘natish</button>
+            <button type="button" id="closeModal" class="close-button">
+              Bekor qilish
+            </button>
           </div>
         </form>
-        <div id="paymentStatus" class="payment-status"></div>
       </div>
     </div>
-
-    <div id="confirmationModal" class="modal">
-      <div class="modal-content confirmation-modal">
-        <span class="close" id="closeConfirmModal">&times;</span>
-        <h2>To'lovni Tasdiqlash</h2>
-        <div class="confirmation-details">
-          <p><strong>Qabul Qiluvchi:</strong> <span id="confirmRecipientName">-</span></p>
-          <p><strong>Karta Raqami:</strong> <span id="confirmCardNumber">-</span></p>
-          <p><strong>Summa:</strong> <span id="confirmAmount">-</span></p>
-          <p><strong>Izoh:</strong> <span id="confirmNote">-</span></p>
-        </div>
-        <div class="confirmation-actions">
-          <button class="cancel-btn" id="cancelConfirmation">Bekor Qilish</button>
-          <button class="confirm-btn" id="finalConfirmPayment">Ha, Jo'natish</button>
-        </div>
-        <div id="confirmationStatus" class="payment-status"></div>
-      </div>
-    </div>
-
     <script type="module" src="../functions/dashboard.js"></script>
   </body>
 </html>

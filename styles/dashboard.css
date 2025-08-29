@@ -21,12 +21,6 @@ body {
   display: flex;
 }
 
-.container #userPhoto {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-}
-
 .sidebar {
   width: 255px;
   position: fixed;
@@ -41,6 +35,7 @@ body {
   flex-direction: column;
   transition: transform 0.4s ease;
   z-index: 10;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar.collapsed {
@@ -74,7 +69,7 @@ body {
 
 .sidebar .center .link {
   width: 100%;
-  height: 32px;
+  height: 40px;
   color: #3f3f46;
   padding-left: 15px;
   transition: all 0.2s linear;
@@ -84,9 +79,18 @@ body {
   gap: 15px;
 }
 
+.sidebar .center .link.active {
+  background-color: #667eea;
+  color: white;
+}
+
 .sidebar .center .link:hover {
   background-color: #e5e7eb;
   color: #1f2937;
+}
+
+.sidebar .center .link.active:hover {
+  background-color: #764ba2;
 }
 
 .sidebar .bottom {
@@ -110,12 +114,13 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #e5e7eb;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 19px;
-  color: #1f2937;
+  color: white;
+  font-weight: bold;
 }
 
 .sidebar .bottom .accaunt {
@@ -128,7 +133,7 @@ body {
 
 .content {
   flex: 1;
-  background-color: #fafafa;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   transition: margin-left 0.4s ease;
   margin-left: 255px;
   min-height: 100vh;
@@ -144,7 +149,8 @@ body {
 .content h1 {
   width: 100%;
   height: 60px;
-  border-bottom: 1px solid #ccc;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: start;
@@ -153,16 +159,22 @@ body {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
   gap: 20px;
   margin: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .sidebarButton {
   cursor: pointer;
+  font-size: 28px;
+  transition: transform 0.2s ease;
+}
+
+.sidebarButton:hover {
+  transform: scale(1.1);
 }
 
 .content .section {
   width: 100%;
-  height: calc(100% - 60px);
-  padding: 20px;
+  padding: 30px;
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.3s ease, transform 0.3s ease;
@@ -177,48 +189,276 @@ body {
   display: none;
 }
 
-.content .coins {
-  width: 100%;
-  display: flex;
-  align-items: start;
-  justify-content: start;
-  flex-wrap: wrap;
-  gap: 20px;
+/* Grades Section Styles */
+.grades-overview {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
 }
 
-.content .coins .coin {
-  width: 100px;
-  height: 100px;
+.grades-overview h2 {
+  color: #333;
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.grades-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px;
   border-radius: 10px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #fff;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.stat-icon {
+  font-size: 2.5em;
+  opacity: 0.9;
+}
+
+.stat-info h3 {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.stat-info p {
+  font-size: 0.9em;
+  opacity: 0.9;
+  margin: 5px 0 0 0;
+}
+
+.test-button {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 900;
-  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.content .coins .coin:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.test-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-.content .eshimpay {
+.grades-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.grade-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.grade-card:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Grade colors for 0-1 scale */
+.grade-0-0 {
+  border-color: #dc2626;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+}
+.grade-0-1 {
+  border-color: #ea580c;
+  background: linear-gradient(135deg, #fed7aa, #fdba74);
+}
+.grade-0-2 {
+  border-color: #d97706;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+}
+.grade-0-3 {
+  border-color: #ca8a04;
+  background: linear-gradient(135deg, #fefce8, #fef08a);
+}
+.grade-0-4 {
+  border-color: #65a30d;
+  background: linear-gradient(135deg, #f0fdf4, #bbf7d0);
+}
+.grade-0-5 {
+  border-color: #16a34a;
+  background: linear-gradient(135deg, #dcfce7, #86efac);
+}
+.grade-0-6 {
+  border-color: #059669;
+  background: linear-gradient(135deg, #d1fae5, #6ee7b7);
+}
+.grade-0-7 {
+  border-color: #0891b2;
+  background: linear-gradient(135deg, #cffafe, #67e8f9);
+}
+.grade-0-8 {
+  border-color: #0284c7;
+  background: linear-gradient(135deg, #e0f2fe, #7dd3fc);
+}
+.grade-0-9 {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, #dbeafe, #93c5fd);
+}
+.grade-1-0 {
+  border-color: #7c3aed;
+  background: linear-gradient(135deg, #ede9fe, #c4b5fd);
+}
+
+.grade-value {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.grade-subject {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.grade-date {
+  font-size: 0.8em;
+  color: #999;
+}
+
+.no-grades {
+  text-align: center;
+  color: #666;
+  font-size: 1.2em;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 10px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 10px;
+}
+
+/* Leaderboard Section */
+.leaderboard-container {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-container h2 {
+  color: #333;
+  font-size: 2em;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.leaderboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.rank-card {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
   display: flex;
-  flex-direction: column;
-  align-items: start;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
 }
 
-.content .eshimpay h2 {
-  font-size: 28px;
-  color: #1f2937;
+.rank-icon {
+  font-size: 2.5em;
+}
+
+.rank-info h3 {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0;
+}
+
+.rank-info p {
+  font-size: 0.9em;
+  opacity: 0.9;
+  margin: 5px 0 0 0;
+}
+
+#balanceTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+#balanceTable th,
+#balanceTable td {
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  text-align: left;
+}
+
+#balanceTable th {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-weight: bold;
+}
+
+#balanceTable tr:hover {
+  background-color: #f3f4f6;
+}
+
+/* EshimPAY Section */
+.eshimpay h2 {
+  color: #333;
+  font-size: 2em;
   margin-bottom: 20px;
 }
 
-/* Credit Card Styling */
 .credit-card {
   width: 400px;
   height: 250px;
@@ -228,9 +468,10 @@ body {
   color: white;
   position: relative;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   overflow: hidden;
   transition: transform 0.3s ease;
+  margin: 0 auto;
 }
 
 .credit-card:hover {
@@ -239,13 +480,17 @@ body {
 }
 
 .credit-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -289,12 +534,9 @@ body {
   margin: 20px 0;
 }
 
-.card-holder, .card-balance {
+.card-holder,
+.card-balance {
   flex: 1;
-}
-
-.card-holder {
-  margin-right: 20px;
 }
 
 .label {
@@ -321,11 +563,6 @@ body {
   right: 20px;
 }
 
-.card-actions {
-  display: flex;
-  align-items: center;
-}
-
 .pay-button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
@@ -347,18 +584,6 @@ body {
   transform: scale(1.05);
 }
 
-.pay-button i {
-  font-size: 14px;
-}
-
-.valid-thru .label {
-  font-size: 8px;
-}
-
-.valid-thru .value {
-  font-size: 12px;
-}
-
 .chip {
   width: 40px;
   height: 30px;
@@ -368,223 +593,21 @@ body {
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.chip::before {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  right: 6px;
-  bottom: 6px;
-  background: linear-gradient(45deg, #ffd700, #ffed4e);
-  border-radius: 2px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+/* Settings Section */
+.settings-content {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 100;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-}
-
-.modal.show {
-  opacity: 1;
-}
-
-.modal-content {
-  background-color: #fefefe;
-  margin: 10% auto;
-  padding: 20px;
-  border: none;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  transform: scale(0.7);
-  transition: transform 0.3s ease-in-out;
-}
-
-.modal.show .modal-content {
-  transform: scale(1);
-}
-
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.close:hover,
-.close:focus {
-  color: #1f2937;
-}
-
-.modal-content h2 {
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #1f2937;
-}
-
-.modal-content p {
-  margin: 10px 0;
-  font-size: 16px;
-  color: #3f3f46;
-}
-
-/* Payment Modal Styles */
-.payment-modal, .confirmation-modal {
-  max-width: 500px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: #1f2937;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-}
-
-.form-group input:focus {
-  border-color: #667eea;
-  outline: none;
-}
-
-.form-actions, .confirmation-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
-.cancel-btn, .confirm-btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.cancel-btn {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.cancel-btn:hover {
-  background: #e5e7eb;
-}
-
-.confirm-btn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-}
-
-.confirm-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.payment-status {
-  margin-top: 15px;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
+.settings-content p {
+  color: #666;
+  font-size: 1.2em;
   text-align: center;
-  display: none;
 }
 
-.payment-status.success {
-  background: #d1fae5;
-  color: #065f46;
-  border: 1px solid #10b981;
-}
-
-.payment-status.error {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #f87171;
-}
-
-.payment-status.info {
-  background: #dbeafe;
-  color: #1e40af;
-  border: 1px solid #3b82f6;
-}
-
-.confirmation-details {
-  background: #f9fafb;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-}
-
-.confirmation-details p {
-  margin: 8px 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.confirmation-details strong {
-  color: #374151;
-}
-
-.confirmation-details span {
-  color: #1f2937;
-  font-weight: bold;
-}
-
-@media (max-width: 1024px) {
-  .sidebar {
-    width: 200px;
-  }
-
-  .content {
-    margin-left: 200px;
-  }
-
-  .content.expanded {
-    margin-left: 0;
-  }
-
-  .content .coins .coin {
-    width: 80px;
-    height: 80px;
-    font-size: 20px;
-  }
-
-  .credit-card {
-    width: 350px;
-    height: 220px;
-  }
-
-  .card-number {
-    font-size: 20px;
-  }
-}
-
+/* Responsive Design */
 @media (max-width: 768px) {
   .sidebar {
     width: 250px;
@@ -599,85 +622,94 @@ body {
     margin-left: 0;
   }
 
-  .content h1 {
-    font-size: 20px;
-    padding-left: 15px;
+  .grades-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
   }
 
-  .sidebar .top {
-    width: 60%;
+  .grade-card {
+    padding: 15px;
   }
 
-  .sidebar .center .link {
-    font-size: 16px;
-    height: 28px;
-  }
-
-  .sidebar .bottom .userProfilePic {
-    width: 35px;
-    height: 35px;
-    font-size: 16px;
-  }
-
-  .sidebar .bottom .accaunt {
-    font-size: 16px;
-  }
-
-  .content .eshimpay h2 {
-    font-size: 24px;
+  .grade-value {
+    font-size: 1.5em;
   }
 
   .credit-card {
     width: 320px;
     height: 200px;
   }
-
-  .card-number {
-    font-size: 18px;
-    letter-spacing: 2px;
-  }
-
-  .modal-content {
-    width: 95%;
-    margin: 15% auto;
-  }
+}
+.chip {
+  width: 40px;
+  height: 30px;
+  background: linear-gradient(45deg, #ffd700, #ffed4e);
+  border-radius: 6px;
+  position: absolute;
+  top: 70px;
+  left: 20px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-@media (max-width: 480px) {
-  .content .section {
-    padding: 15px;
-  }
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
 
-  .content .coins .coin {
-    width: 70px;
-    height: 70px;
-    font-size: 18px;
-  }
+.modal.hidden {
+  display: none;
+}
 
-  .content .eshimpay h2 {
-    font-size: 20px;
-  }
+.modal-content {
+  background: #1e1e2f;
+  padding: 20px;
+  border-radius: 12px;
+  width: 300px;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
 
-  .credit-card {
-    width: 280px;
-    height: 180px;
-    padding: 15px;
-  }
+.modal-content h3 {
+  margin-bottom: 15px;
+}
 
-  .card-number {
-    font-size: 16px;
-    margin: 15px 0;
-  }
+.modal-content label {
+  display: block;
+  font-size: 14px;
+  margin-top: 10px;
+}
 
-  .card-header {
-    margin-bottom: 20px;
-  }
+.modal-content input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+}
 
-  .card-logo {
-    font-size: 14px;
-  }
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
 
-  .card-logo i {
-    font-size: 18px;
-  }
+.close-button {
+  background: #555;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.close-button:hover {
+  background: #777;
 }
