@@ -8,8 +8,6 @@ import {
   getFirestore,
   doc,
   updateDoc,
-  arrayUnion,
-  serverTimestamp,
   onSnapshot,
   collection,
   query,
@@ -19,7 +17,6 @@ import {
   where,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyABomqBTkkti8Wzxu2H0UKX1s-UZBoFN0c",
   authDomain: "eshim-edu-eclipse.firebaseapp.com",
@@ -37,7 +34,6 @@ const db = getFirestore(app);
 let currentUser = null;
 let unsubscribe = null;
 
-// DOM elements
 const sidebarButton = document.querySelector(".sidebarButton");
 const sidebar = document.querySelector(".sidebar");
 const content = document.querySelector(".content");
@@ -53,7 +49,6 @@ function getGradeClass(grade) {
   return `grade-${Math.floor(scaled / 10)}-${scaled % 10}`;
 }
 
-// Date formatting
 function formatDate(timestamp) {
   if (!timestamp) return "Sana yo'q";
   try {
@@ -70,7 +65,6 @@ function formatDate(timestamp) {
   return "Sana yo'q";
 }
 
-// Render grades
 function renderGrades(grades) {
   if (!grades || grades.length === 0) {
     gradesContainer.innerHTML =
@@ -84,7 +78,7 @@ function renderGrades(grades) {
   grades.forEach((grade, index) => {
     let gradeValue = grade.grade ?? grade.reward ?? 0;
     if (gradeValue > 1) gradeValue = gradeValue / 5;
-    gradeValue = Math.max(0, Math.min(1, gradeValue)); // stays 0–1
+    gradeValue = Math.max(0, Math.min(1, gradeValue));
 
     const subject = grade.subject || `Fan ${index + 1}`;
     const date = formatDate(grade.createdAt);
@@ -104,7 +98,6 @@ function renderGrades(grades) {
   gradesContainer.appendChild(gradesGrid);
 }
 
-// Update stats (✅ only average ×10)
 function updateStats(grades) {
   const averageGradeEl = document.getElementById("averageGrade");
   const totalSubjectsEl = document.getElementById("totalSubjects");
@@ -126,7 +119,6 @@ function updateStats(grades) {
   const average =
     validGrades.reduce((sum, grade) => sum + grade, 0) / validGrades.length;
 
-  // 🔑 only here → multiply by 10
   averageGradeEl.textContent = (average * 10).toFixed(2);
 
   const uniqueSubjects = new Set(grades.map((g) => g.subject || "Unknown"));
@@ -134,52 +126,37 @@ function updateStats(grades) {
   totalGradesEl.textContent = grades.length.toString();
 }
 
-// Load user data
 function loadUserData(user) {
   if (unsubscribe) unsubscribe();
   const userRef = doc(db, "users", user.uid);
-  unsubscribe = onSnapshot(
-    userRef,
-    (docSnap) => {
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
-        const userInfoEl = document.getElementById("accaunt");
-        const userProfilePic = document.querySelector(".userProfilePic");
-        const cardHolder = document.getElementById("cardHolder");
-        const cardBalance = document.getElementById("cardBalance");
-        const cardNumberEl = document.getElementById("cardNumber");
-        if (cardNumberEl) {
-          cardNumberEl.textContent = userData.balanceId || "000-XXX-000";
-        }
 
-        const fullName =
-          userData.fullName || userData.email || user.email || "Foydalanuvchi";
-
-        if (userInfoEl) userInfoEl.textContent = fullName;
-        if (userProfilePic && fullName)
-          userProfilePic.textContent = fullName.charAt(0).toUpperCase();
-        if (cardHolder) cardHolder.textContent = fullName.toUpperCase();
-        if (cardBalance)
-          cardBalance.textContent = `${userData.balance || 0} ESHIM`;
-
-        const grades = userData.grades || [];
-        renderGrades(grades);
-        updateStats(grades);
-      } else {
-        gradesContainer.innerHTML =
-          '<div class="error">Foydalanuvchi ma\'lumotlari topilmadi</div>';
-      }
-    },
-    (error) => {
+  unsubscribe = onSnapshot(userRef, (docSnap) => {
+    if (!docSnap.exists()) {
       gradesContainer.innerHTML =
-        '<div class="error">Ma\'lumotlarni yuklashda xatolik: ' +
-        error.message +
-        "</div>";
+        '<div class="error">Foydalanuvchi ma\'lumotlari topilmadi</div>';
+      return;
     }
-  );
+
+    const userData = docSnap.data();
+
+    const fullName =
+      userData.fullName || userData.email || user.email || "Foydalanuvchi";
+    document.getElementById("accaunt").textContent = fullName;
+    document.querySelector(".userProfilePic").textContent =
+      fullName.charAt(0).toUpperCase();
+    document.getElementById("cardHolder").textContent = fullName.toUpperCase();
+    document.getElementById("cardBalance").textContent =
+      `${userData.balance || 0} ESHIM`;
+    document.getElementById("cardNumber").textContent =
+      userData.balanceId || "000-XXX-000";
+
+    const grades = userData.grades || [];
+    renderGrades(grades);
+    updateStats(grades);
+    pageTitle.textContent = "Baholar";
+  });
 }
 
-// Leaderboard
 function loadLeaderboard() {
   const usersRef = collection(db, "users");
   const q = query(usersRef, orderBy("balance", "desc"));
@@ -222,7 +199,6 @@ function loadLeaderboard() {
   );
 }
 
-// Modal toggle
 document.getElementById("payButton")?.addEventListener("click", () => {
   document.getElementById("transferModal").classList.remove("hidden");
 });
@@ -230,7 +206,6 @@ document.getElementById("closeModal")?.addEventListener("click", () => {
   document.getElementById("transferModal").classList.add("hidden");
 });
 
-// Live recipient lookup
 const recipientCardInput = document.getElementById("recipientCard");
 const recipientNameEl = document.getElementById("recipientName");
 
@@ -260,7 +235,6 @@ recipientCardInput?.addEventListener("blur", async () => {
   }
 });
 
-// Transfer form
 document.getElementById("transferForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -310,13 +284,11 @@ document.getElementById("transferForm")?.addEventListener("submit", async (e) =>
   }
 });
 
-// Sidebar toggle
 sidebarButton.addEventListener("click", () => {
   sidebar.classList.toggle("collapsed");
   content.classList.toggle("expanded");
 });
 
-// Section nav
 links.forEach((link) => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
@@ -344,8 +316,6 @@ links.forEach((link) => {
   });
 });
 
-
-// Logout
 profileSection?.addEventListener("click", async () => {
   if (confirm("Tizimdan chiqmoqchimisiz?")) {
     try {
@@ -358,7 +328,6 @@ profileSection?.addEventListener("click", async () => {
   }
 });
 
-// Auth observer
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUser = user;
