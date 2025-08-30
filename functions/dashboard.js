@@ -34,15 +34,6 @@ const db = getFirestore(app);
 let currentUser = null;
 let unsubscribe = null;
 
-const sidebarButton = document.querySelector(".sidebarButton");
-const sidebar = document.querySelector(".sidebar");
-const content = document.querySelector(".content");
-const links = document.querySelectorAll(".sidebar .link");
-const sections = document.querySelectorAll(".content .section");
-const pageTitle = document.getElementById("pageTitle");
-const profileSection = document.getElementById("profileSection");
-const gradesContainer = document.getElementById("gradesContainer");
-
 // Grade CSS class
 function getGradeClass(grade) {
   const scaled = Math.round(grade * 10);
@@ -66,6 +57,12 @@ function formatDate(timestamp) {
 }
 
 function renderGrades(grades) {
+  const gradesContainer = document.getElementById("gradesContainer");
+  if (!gradesContainer) {
+    console.warn("Grades container not found in DOM");
+    return;
+  }
+
   if (!grades || grades.length === 0) {
     gradesContainer.innerHTML =
       '<div class="no-grades">Hozircha baholar yo\'q</div>';
@@ -103,6 +100,11 @@ function updateStats(grades) {
   const totalSubjectsEl = document.getElementById("totalSubjects");
   const totalGradesEl = document.getElementById("totalGrades");
 
+  if (!averageGradeEl || !totalSubjectsEl || !totalGradesEl) {
+    console.warn("Stats elements not found in DOM");
+    return;
+  }
+
   if (!grades || grades.length === 0) {
     averageGradeEl.textContent = "0.00";
     totalSubjectsEl.textContent = "0";
@@ -132,28 +134,40 @@ function loadUserData(user) {
 
   unsubscribe = onSnapshot(userRef, (docSnap) => {
     if (!docSnap.exists()) {
-      gradesContainer.innerHTML =
-        '<div class="error">Foydalanuvchi ma\'lumotlari topilmadi</div>';
+      const gradesContainer = document.getElementById("gradesContainer");
+      if (gradesContainer) {
+        gradesContainer.innerHTML =
+          '<div class="error">Foydalanuvchi ma\'lumotlari topilmadi</div>';
+      }
       return;
     }
 
     const userData = docSnap.data();
-
     const fullName =
       userData.fullName || userData.email || user.email || "Foydalanuvchi";
-    document.getElementById("accaunt").textContent = fullName;
-    document.querySelector(".userProfilePic").textContent =
-      fullName.charAt(0).toUpperCase();
-    document.getElementById("cardHolder").textContent = fullName.toUpperCase();
-    document.getElementById("cardBalance").textContent =
-      `${userData.balance || 0} ESHIM`;
-    document.getElementById("cardNumber").textContent =
-      userData.balanceId || "000-XXX-000";
+    
+    // Safe DOM updates with null checks
+    const accountEl = document.getElementById("accaunt");
+    if (accountEl) accountEl.textContent = fullName;
+    
+    const profilePicEl = document.querySelector(".userProfilePic");
+    if (profilePicEl) profilePicEl.textContent = fullName.charAt(0).toUpperCase();
+    
+    const cardHolderEl = document.getElementById("cardHolder");
+    if (cardHolderEl) cardHolderEl.textContent = fullName.toUpperCase();
+    
+    const cardBalanceEl = document.getElementById("cardBalance");
+    if (cardBalanceEl) cardBalanceEl.textContent = `${userData.balance || 0} ESHIM`;
+    
+    const cardNumberEl = document.getElementById("cardNumber");
+    if (cardNumberEl) cardNumberEl.textContent = userData.balanceId || "000-XXX-000";
 
     const grades = userData.grades || [];
     renderGrades(grades);
     updateStats(grades);
-    pageTitle.textContent = "Baholar";
+    
+    const pageTitle = document.getElementById("pageTitle");
+    if (pageTitle) pageTitle.textContent = "Baholar";
   });
 }
 
@@ -163,6 +177,11 @@ function loadLeaderboard() {
   const tableBody = document.querySelector("#balanceTable tbody");
   const userRankEl = document.getElementById("userRank");
   const userBalanceEl = document.getElementById("userBalance");
+
+  if (!tableBody || !userRankEl || !userBalanceEl) {
+    console.warn("Leaderboard elements not found in DOM");
+    return;
+  }
 
   onSnapshot(
     q,
@@ -194,145 +213,269 @@ function loadLeaderboard() {
       userBalanceEl.textContent = myBalance;
     },
     (err) => {
-      tableBody.innerHTML = `<tr><td colspan="3">Xatolik: ${err.message}</td></tr>`;
+      if (tableBody) {
+        tableBody.innerHTML = `<tr><td colspan="3">Xatolik: ${err.message}</td></tr>`;
+      }
     }
   );
 }
 
-document.getElementById("payButton")?.addEventListener("click", () => {
-  document.getElementById("transferModal").classList.remove("hidden");
-});
-document.getElementById("closeModal")?.addEventListener("click", () => {
-  document.getElementById("transferModal").classList.add("hidden");
-});
-
-const recipientCardInput = document.getElementById("recipientCard");
-const recipientNameEl = document.getElementById("recipientName");
-
-recipientCardInput?.addEventListener("blur", async () => {
-  const cardNum = recipientCardInput.value.trim().toUpperCase();
-  if (!cardNum) return;
-
-  try {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("balanceId", "==", cardNum));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-      recipientNameEl.textContent = "❌ Karta egasi topilmadi";
-      recipientNameEl.classList.add("error");
-      return;
-    }
-
-    const recipientData = snapshot.docs[0].data();
-    recipientNameEl.textContent = `✅ ${
-      recipientData.fullName || "Noma’lum foydalanuvchi"
-    }`;
-    recipientNameEl.classList.remove("error");
-  } catch (err) {
-    recipientNameEl.textContent = "Xatolik yuz berdi";
-    recipientNameEl.classList.add("error");
-  }
-});
-
-document.getElementById("transferForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const recipientCard = document
-    .getElementById("recipientCard")
-    .value.trim()
-    .toUpperCase();
-  const amount = parseFloat(document.getElementById("transferAmount").value);
-
-  if (!recipientCard || isNaN(amount) || amount <= 0) {
-    return alert("Ma’lumotlar noto‘g‘ri kiritildi!");
-  }
-
-  try {
-    const senderRef = doc(db, "users", currentUser.uid);
-    const senderSnap = await getDoc(senderRef);
-    if (!senderSnap.exists()) return alert("Sizning akkauntingiz topilmadi!");
-
-    const senderData = senderSnap.data();
-    if ((senderData.balance || 0) < amount)
-      return alert("Balansda yetarli mablag‘ yo‘q!");
-
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("balanceId", "==", recipientCard));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) return alert("Qabul qiluvchi topilmadi!");
-
-    const recipientDoc = snapshot.docs[0];
-    const recipientRef = doc(db, "users", recipientDoc.id);
-    const recipientData = recipientDoc.data();
-
-    await updateDoc(senderRef, {
-      balance: (senderData.balance || 0) - amount,
-    });
-    await updateDoc(recipientRef, {
-      balance: (recipientData.balance || 0) + amount,
-    });
-
-    alert("Pul muvaffaqiyatli jo‘natildi!");
-
-    document.getElementById("transferModal").classList.add("hidden");
-    document.getElementById("transferForm").reset();
-    loadUserData(currentUser);
-  } catch (error) {
-    alert("Xatolik: " + error.message);
-  }
-});
-
-sidebarButton.addEventListener("click", () => {
-  sidebar.classList.toggle("collapsed");
-  content.classList.toggle("expanded");
-});
-
-links.forEach((link) => {
-  link.addEventListener("click", (e) => {
-    e.preventDefault();
-    const targetSection = link.getAttribute("data-section");
-    if (!targetSection) return;
-    links.forEach((l) => l.classList.remove("active"));
-    link.classList.add("active");
-    sections.forEach((section) => {
-      section.classList.remove("active");
-      section.classList.add("hidden");
-    });
-    const targetEl = document.querySelector(`.section.${targetSection}`);
-    if (targetEl) {
-      targetEl.classList.remove("hidden");
-      setTimeout(() => targetEl.classList.add("active"), 10);
-    }
-    const titles = {
-      grades: "Baholar",
-      leaderboard: "Reytinglar",
-      eshimpay: "EshimPAY",
-      settings: "Sozlamalar",
-    };
-    if (pageTitle && titles[targetSection])
-      pageTitle.textContent = titles[targetSection];
+// Initialize all event listeners
+function initializeApp1() {
+  // Modal handlers
+  const payButton = document.getElementById("payButton");
+  const closeModal = document.getElementById("closeModal");
+  const transferModal = document.getElementById("transferModal");
+  
+  payButton?.addEventListener("click", () => {
+    transferModal?.classList.remove("hidden");
   });
-});
+  
+  closeModal?.addEventListener("click", () => {
+    transferModal?.classList.add("hidden");
+  });
 
-profileSection?.addEventListener("click", async () => {
-  if (confirm("Tizimdan chiqmoqchimisiz?")) {
+  // Recipient card validation
+  const recipientCardInput = document.getElementById("recipientCard");
+  const recipientNameEl = document.getElementById("recipientName");
+
+  recipientCardInput?.addEventListener("blur", async () => {
+    const cardNum = recipientCardInput.value.trim().toUpperCase();
+    if (!cardNum || !recipientNameEl) return;
+
     try {
-      if (unsubscribe) unsubscribe();
-      await signOut(auth);
-      window.location.href = "../index.html";
-    } catch (error) {
-      alert("Chiqishda xatolik: " + error.message);
-    }
-  }
-});
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("balanceId", "==", cardNum));
+      const snapshot = await getDocs(q);
 
+      if (snapshot.empty) {
+        recipientNameEl.textContent = "❌ Karta egasi topilmadi";
+        recipientNameEl.classList.add("error");
+        return;
+      }
+
+      const recipientData = snapshot.docs[0].data();
+      recipientNameEl.textContent = `✅ ${
+        recipientData.fullName || "Noma'lum foydalanuvchi"
+      }`;
+      recipientNameEl.classList.remove("error");
+    } catch (err) {
+      if (recipientNameEl) {
+        recipientNameEl.textContent = "Xatolik yuz berdi";
+        recipientNameEl.classList.add("error");
+      }
+    }
+  });
+
+  // Transfer form handler
+  const transferForm = document.getElementById("transferForm");
+  transferForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const recipientCard = document
+      .getElementById("recipientCard")
+      ?.value.trim()
+      .toUpperCase();
+    const amount = parseFloat(document.getElementById("transferAmount")?.value || "0");
+
+    if (!recipientCard || isNaN(amount) || amount <= 0) {
+      return alert("Ma'lumotlar noto'g'ri kiritildi!");
+    }
+
+    try {
+      const senderRef = doc(db, "users", currentUser.uid);
+      const senderSnap = await getDoc(senderRef);
+      if (!senderSnap.exists()) return alert("Sizning akkauntingiz topilmadi!");
+
+      const senderData = senderSnap.data();
+      if ((senderData.balance || 0) < amount)
+        return alert("Balansda yetarli mablag' yo'q!");
+
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("balanceId", "==", recipientCard));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) return alert("Qabul qiluvchi topilmadi!");
+
+      const recipientDoc = snapshot.docs[0];
+      const recipientRef = doc(db, "users", recipientDoc.id);
+      const recipientData = recipientDoc.data();
+
+      await updateDoc(senderRef, {
+        balance: (senderData.balance || 0) - amount,
+      });
+      await updateDoc(recipientRef, {
+        balance: (recipientData.balance || 0) + amount,
+      });
+
+      alert("Pul muvaffaqiyatli jo'natildi!");
+
+      transferModal?.classList.add("hidden");
+      transferForm?.reset();
+      if (recipientNameEl) recipientNameEl.textContent = "";
+      if (currentUser) loadUserData(currentUser);
+    } catch (error) {
+      alert("Xatolik: " + error.message);
+    }
+  });
+
+  // Navigation links
+  const links = document.querySelectorAll(".sidebar .link");
+  const sections = document.querySelectorAll(".content .section");
+  const pageTitle = document.getElementById("pageTitle");
+
+  links?.forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetSection = link.getAttribute("data-section");
+      if (!targetSection) return;
+      
+      // Close mobile sidebar when clicking a link
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        const sidebar = document.querySelector(".sidebar");
+        sidebar?.classList.remove("mobile-open");
+        document.body.classList.remove('sidebar-open');
+      }
+      
+      links.forEach((l) => l.classList.remove("active"));
+      link.classList.add("active");
+      sections?.forEach((section) => {
+        section.classList.remove("active");
+        section.classList.add("hidden");
+      });
+      const targetEl = document.querySelector(`.section.${targetSection}`);
+      if (targetEl) {
+        targetEl.classList.remove("hidden");
+        setTimeout(() => targetEl.classList.add("active"), 10);
+      }
+      const titles = {
+        grades: "Baholar",
+        leaderboard: "Reytinglar",
+        eshimpay: "EshimPAY",
+        settings: "Sozlamalar",
+      };
+      if (pageTitle && titles[targetSection])
+        pageTitle.textContent = titles[targetSection];
+    });
+  });
+
+  // Profile section (logout)
+  const profileSection = document.getElementById("profileSection");
+  profileSection?.addEventListener("click", async () => {
+    if (confirm("Tizimdan chiqmoqchimisiz?")) {
+      try {
+        if (unsubscribe) unsubscribe();
+        await signOut(auth);
+        window.location.href = "../index.html";
+      } catch (error) {
+        alert("Chiqishda xatolik: " + error.message);
+      }
+    }
+  });
+}
+
+// Mobile Sidebar Setup - GUARANTEED TO WORK
+function setupMobileSidebar() {
+  console.log('🔄 Setting up mobile sidebar...');
+  
+  const sidebarButton = document.querySelector('.sidebarButton');
+  const sidebar = document.querySelector('.sidebar');
+  const content = document.querySelector('.content');
+  
+  if (!sidebarButton || !sidebar) {
+    console.error('❌ Sidebar elements not found!');
+    console.log('Button:', !!sidebarButton, 'Sidebar:', !!sidebar);
+    return;
+  }
+  
+  console.log('✅ Sidebar elements found');
+  
+  // Force remove any existing listeners and clone the button
+  const newButton = sidebarButton.cloneNode(true);
+  sidebarButton.parentNode.replaceChild(newButton, sidebarButton);
+  
+  // Add the main click handler
+  newButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🖱️ Sidebar button clicked!');
+    console.log('📱 Window width:', window.innerWidth);
+    
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      const isOpen = sidebar.classList.contains('mobile-open');
+      console.log('📱 Mobile mode - Currently open:', isOpen);
+      
+      if (isOpen) {
+        // Close sidebar
+        sidebar.classList.remove('mobile-open');
+        document.body.classList.remove('sidebar-open');
+        console.log('📱 ➡️ Closing sidebar');
+      } else {
+        // Open sidebar
+        sidebar.classList.add('mobile-open');
+        document.body.classList.add('sidebar-open');
+        console.log('📱 ⬅️ Opening sidebar');
+      }
+    } else {
+      // Desktop mode
+      console.log('💻 Desktop mode');
+      sidebar.classList.toggle('collapsed');
+      if (content) content.classList.toggle('expanded');
+    }
+  });
+  
+  // Close sidebar when clicking outside on mobile
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open')) {
+      if (!sidebar.contains(e.target) && !newButton.contains(e.target)) {
+        sidebar.classList.remove('mobile-open');
+        document.body.classList.remove('sidebar-open');
+        console.log('📱 🔒 Sidebar closed (clicked outside)');
+      }
+    }
+  });
+  
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+      sidebar.classList.remove('mobile-open');
+      document.body.classList.remove('sidebar-open');
+      console.log('📱 ➡️ 💻 Switched to desktop - sidebar closed');
+    }
+  });
+  
+  console.log('✅ Mobile sidebar setup complete!');
+}
+
+// Initialize everything when DOM is ready
+function init() {
+  console.log('🚀 Initializing dashboard...');
+  
+  // Setup basic app functionality
+  initializeApp1();
+  
+  // Setup mobile sidebar with delay to ensure DOM is ready
+  setTimeout(setupMobileSidebar, 100);
+}
+
+// Run initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+// Firebase auth state listener
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUser = user;
     loadUserData(user);
     loadLeaderboard();
+    console.log('👤 User authenticated:', user.email);
   } else {
     if (unsubscribe) unsubscribe();
     if (!window.location.pathname.includes("index.html")) {

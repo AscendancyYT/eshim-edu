@@ -161,30 +161,32 @@
       </div>
     </div>
 
-    <div id="transferModal" class="modal hidden">
-      <div class="modal-content">
-        <h3>Pul jo‘natish</h3>
-        <form id="transferForm">
-          <label>Karta raqami</label>
-          <input
-            type="text"
-            id="recipientCard"
-            placeholder="123-ABC-456"
-            required
-          />
+<div id="transferModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Pul jo'natish</h3>
+    <form id="transferForm">
+      <label>Karta raqami</label>
+      <input
+        type="text"
+        id="recipientCard"
+        placeholder="123-ABC-456"
+        required
+      />
+      <div id="recipientName" class="recipient-info"></div>
 
-          <label>Summasi (ESHIM)</label>
-          <input type="number" id="transferAmount" min="1" required />
+      <label>Summasi (ESHIM)</label>
+      <input type="number" id="transferAmount" min="1" required />
 
-          <div class="modal-actions">
-            <button type="submit" class="pay-button">Jo‘natish</button>
-            <button type="button" id="closeModal" class="close-button">
-              Bekor qilish
-            </button>
-          </div>
-        </form>
+      <div class="modal-actions">
+        <button type="submit" class="pay-button">Jo'natish</button>
+        <button type="button" id="closeModal" class="close-button">
+          Bekor qilish
+        </button>
       </div>
-    </div>
+    </form>
+  </div>
+</div>
+
     <script type="module" src="../functions/dashboard.js"></script>
   </body>
 </html>
